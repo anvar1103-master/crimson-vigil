@@ -68,11 +68,15 @@ export class Level {
     const group = new THREE.Group();
     group.position.set(x, y, z);
     const sprites = [];
-    const fm = new THREE.SpriteMaterial({
+    // Один материал пламени на уровень: спрайты с общим материалом дешевле.
+    const fm = (this._flameMat ||= new THREE.SpriteMaterial({
       map: flameTex(), color: new THREE.Color(3.2, 1.7, 0.9), blending: THREE.AdditiveBlending,
       depthWrite: false, fog: false, transparent: true,
-    });
-    for (let i = 0; i < 3; i++) {
+    }));
+    // Свечи и мелкие огоньки — один спрайт без ореола (экономия draw call-ов).
+    const small = scale < 0.2;
+    if (small) glow = 0;
+    for (let i = 0; i < (small ? 1 : 3); i++) {
       const s = new THREE.Sprite(fm);
       const sx = (0.32 - i * 0.07) * scale, sy = (0.62 - i * 0.12) * scale;
       s.scale.set(sx, sy, 1);
@@ -114,7 +118,7 @@ export class Level {
         if (s.glow) { const g = 0.9 + 0.1 * k; s.sprite.scale.set(s.sx * g, s.sy * g, 1); continue; }
         const j = flicker(t * 2.1 + i * 1.7, f.seed + i * 5);
         s.sprite.scale.set(s.sx * (0.9 + 0.12 * j), s.sy * (0.85 + 0.2 * j), 1);
-        s.sprite.material.rotation = j * 0.06;
+        s.sprite.position.x = (s.ox ??= s.sprite.position.x) + j * 0.02 * s.sx;
       }
     }
     for (const u of this.updaters) u(dt, t);

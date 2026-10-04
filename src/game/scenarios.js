@@ -184,6 +184,8 @@ export const SCENARIOS = {
       g.startRun();
       g.player.maxHealth = g.player.health = 400; // бот слабый — даём ему форы, проверяем логику, а не баланс
       if (g.params.has('god')) g.run.stats.damage = 4;
+      const ev = g.params.get('event');
+      if (ev) { g.run.gold = 200; g.transitionTo({ kind: 'event', reward: ev, biome: 0, index: 1 }); }
     },
     input(g, i) {
       const p = g.player, inp = {};
@@ -210,10 +212,11 @@ export const SCENARIOS = {
       if (i % 900 === 0) console.log(`  pos ${p.pos.x.toFixed(1)},${p.pos.z.toFixed(1)} portals: ${g.zones.portals.map((pt) => `${pt.pos.x.toFixed(1)},${pt.pos.z.toFixed(1)}`).join(' ')}`);
       const alive = g.enemies.list.filter((e) => e.alive && e.state !== 'rise');
       if (alive.length) return SCENARIOS.bot.input(g, i);
-      const item = g.zones.items.find((it) => it.active);
+      g.botUsed ||= new WeakSet();
+      const item = g.zones.items.find((it) => it.active && !g.botUsed.has(it));
       if (item) {
         const d = steer(item.pos, 1.2);
-        if (d < 1.8 && i % 20 === 0) inp.interact = true;
+        if (d < 1.8 && i % 20 === 0) { inp.interact = true; g.botUsed.add(item); }
         return inp;
       }
       const portal = g.zones.portals.find((pt) => pt.active && pt.open > 0.6);

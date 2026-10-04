@@ -193,9 +193,9 @@ export function stall(L, M, x, z, ry = 0) {
   const [cx, , cz] = local(x, z, ry, 0, 0, 0);
   L.add(boxGeo(2.6, 0.08, 1.8, rng), M.planks, mat4(cx, 0.9, cz, 0, ry, 0));
   L.add(new THREE.PlaneGeometry(2.8, 2.0).rotateX(-Math.PI / 2 + 0.25), M.cloth, mat4(cx, 2.35, cz, 0, ry, 0), { cast: true });
-  for (let i = 0; i < 3; i++) {
-    const [px, , pz] = local(x, z, ry, -0.8 + i * 0.8, 0, 0);
-    L.add(new THREE.SphereGeometry(0.15, 8, 6), M.wax, mat4(px, 1.05, pz));
+  for (let i = 0; i < 7; i++) {
+    const [px, , pz] = local(x, z, ry, -1.0 + i * 0.33, 0, (rng() - 0.5) * 0.8);
+    L.add(new THREE.SphereGeometry(0.08 + rng() * 0.04, 8, 6), i % 2 ? M.dirt : M.hay, mat4(px, 1.0, pz));
   }
   rotBox(L, x, z, 2.6, 1.8, ry, 1.2);
 }

@@ -8,6 +8,16 @@ import { registerBiome } from '../biomes.js';
 
 const V3 = THREE.Vector3;
 
+// Коридоры от центра к выходам: здесь пропсы не ставим, чтобы путь к вратам был свободен.
+export function corridors(exits, from = { x: 0, z: 0 }, r = 2.6) {
+  const out = [];
+  for (const e of exits) {
+    const steps = Math.ceil(Math.hypot(e.x - from.x, e.z - from.z) / 2);
+    for (let i = 0; i <= steps; i++) out.push({ x: from.x + ((e.x - from.x) * i) / steps, z: from.z + ((e.z - from.z) * i) / steps, r });
+  }
+  return out;
+}
+
 export function scatter(L, n, minD, R, avoid) {
   const out = [];
   let tries = 0;
@@ -89,6 +99,7 @@ export function buildVillage(scene, seed = 1) {
   const avoid = [
     { x: 0, z: -1.5, r: 3.5 }, { x: 0, z: 15, r: 4 }, { x: 0, z: 10, r: 3 }, { x: 0, z: 6, r: 2.5 }, { x: 0, z: -18, r: 3.5 }, { x: 18, z: -1, r: 3.5 },
     { x: -18, z: -1, r: 3.5 }, { x: -7.5, z: -8.5, r: 1 }, { x: 7.5, z: -8.5, r: 1 }, { x: -7.5, z: 6.5, r: 1 }, { x: 7.5, z: 6.5, r: 1 },
+    ...corridors([{ x: 0, z: -18 }, { x: 18, z: -1 }, { x: -18, z: -1 }, { x: 0, z: 15 }], { x: 0, z: 4 }),
   ];
   const spots = scatter(L, 16, 3.2, 16.5, avoid);
   spots.forEach((s, i) => {

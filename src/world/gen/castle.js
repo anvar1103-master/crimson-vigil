@@ -6,7 +6,7 @@ import * as P from '../props.js';
 import * as Q from '../props2.js';
 import { registerBiome } from '../biomes.js';
 import { withFog } from '../../core/fog.js';
-import { scatter } from './village.js';
+import { scatter, corridors } from './village.js';
 
 const V3 = THREE.Vector3;
 
@@ -158,7 +158,10 @@ export function buildCourtyard(scene, seed = 1) {
   for (const [x, z, ry] of [[-15, -14, Math.PI / 4], [15, -14, -Math.PI / 4]]) statue(L, M, x, z, ry);
   for (const [x, z] of [[-8, -12], [8, -12], [-8, 8], [8, 8]]) brazierStand(L, M, x, z);
 
-  const avoid = [{ x: 0, z: -3, r: 5 }, { x: 0, z: 15, r: 4 }, { x: 0, z: 9, r: 3 }, { x: 0, z: -17, r: 4 }, { x: 18, z: 0, r: 4 }, { x: -18, z: 0, r: 4 }, { x: 0, z: 5, r: 2.5 }];
+  const avoid = [
+    { x: 0, z: -3, r: 5 }, { x: 0, z: 15, r: 4 }, { x: 0, z: 9, r: 3 }, { x: 0, z: -17, r: 4 }, { x: 18, z: 0, r: 4 }, { x: -18, z: 0, r: 4 }, { x: 0, z: 5, r: 2.5 },
+    ...corridors([{ x: 0, z: -17.8 }, { x: 18, z: 0 }, { x: -18, z: 0 }, { x: 0, z: 15 }], { x: 0, z: 5 }),
+  ];
   for (const [i, sp] of scatter(L, 12, 3.5, 16, avoid).entries()) {
     const t = i % 4;
     if (t === 0) { Q.barrel(L, M, sp.x, sp.z); Q.barrel(L, M, sp.x + 0.8, sp.z + 0.3); }

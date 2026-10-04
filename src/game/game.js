@@ -31,6 +31,12 @@ import { loadMeta, saveMeta, META_UPGRADES } from './meta.js';
 import { loadSettings, SettingsUI, QUALITY } from '../ui/settings.js';
 import { rollRelics } from './relics.js';
 
+function countLights(scene) {
+  let n = 0;
+  scene.traverse((o) => { if (o.isPointLight) n++; });
+  return n;
+}
+
 export class Game {
   constructor(container, uiRoot) {
     this.container = container;
@@ -221,12 +227,27 @@ export class Game {
     this.hud.setPrompt('');
   }
 
-  startRun() {
+  async startRun() {
+    if (this.state === 'transition') return;
     this.audio.init();
     this.audio.resume();
-    this.run = new Run();
-    this.resetWorld();
+    this.input.lock();
     const first = { kind: 'combat', reward: 'relic', modifier: null, biome: 0, index: 0 };
+    if (!this.scenario) {
+      // Титульная карточка ночи; мир собирается, пока экран тёмный.
+      this.hud.menu.classList.add('hidden');
+      this.hud.death.classList.add('hidden');
+      this.state = 'transition';
+      const run = new Run();
+      await this.transitionUI.run(async () => { this.setupRun(run, first); }, { pre: 'Ночь первая', title: BIOMES[0].name, sub: 'Колокол бьёт полночь' });
+      return;
+    }
+    this.setupRun(new Run(), first);
+  }
+
+  setupRun(run, first) {
+    this.run = run;
+    this.resetWorld();
     this.loadLevel(BIOMES[0].id, this.run.seed, first);
     this.player.reset(this.level.playerStart, this.level.playerYaw);
     this.player.maxHealth = 100 + (this.meta.upgrades.vitality || 0) * 10;
@@ -240,7 +261,6 @@ export class Game {
     this.hud.setRelics([]);
     this.state = 'playing';
     this.hud.show('hud');
-    this.input.lock();
     // Постоянные улучшения Ордена.
     const up = this.meta.upgrades;
     this.run.gold += (up.tithe || 0) * 25;
@@ -488,7 +508,14 @@ export class Game {
       await null; // даём отработать промисам (выбор наград, переходы)
     }
     const gl = this.renderer.getContext();
-    console.log('SCENARIO DONE', this.scenarioName, 'calls', this.renderer.info.render.calls, 'gl', gl.getError(), 'enemies', this.enemies.list.length, 'hp', Math.round(this.player.health));
+    // Отдельный замер: сколько draw call-ов стоит мир (без пост-обработки).
+    this.renderer.info.reset();
+    this.renderer.info.autoReset = false;
+    this.renderer.render(this.scene, this.camera);
+    const worldCalls = this.renderer.info.render.calls, tris = this.renderer.info.render.triangles;
+    this.renderer.info.autoReset = true;
+    this.post.render(1 / 60);
+    console.log('SCENARIO DONE', this.scenarioName, 'world calls', worldCalls, 'tris', tris, 'lights', this.scene.children.length && countLights(this.scene), 'gl', gl.getError(), 'enemies', this.enemies.list.length, 'hp', Math.round(this.player.health));
     // Headless --screenshot не захватывает тяжёлый WebGL-холст — подменяем его картинкой.
     const img = new Image();
     img.src = this.renderer.domElement.toDataURL('image/png');

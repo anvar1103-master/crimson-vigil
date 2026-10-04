@@ -173,7 +173,7 @@ export class Revolver {
     this.hip = new V3(0.15, -0.15, -0.4);
     // Поза перезарядки: ствол вверх-влево, левый бок с откинутым барабаном к игроку.
     this.reloadPose = { x: -0.07, y: 0.035, z: 0.06, rx: 0.45, ry: 0.55, rz: 0.25 };
-    this.ads = new V3(0, -0.049 - 0.012, -0.3);
+    this.ads = new V3(0, -0.049 - 0.026, -0.36);
     this.model.position.copy(this.hip);
 
     // Вспышка.

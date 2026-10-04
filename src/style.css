@@ -20,6 +20,11 @@ html, body {
 }
 #game, #game canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
 #ui { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
+#loading { position: fixed; inset: 0; z-index: 10; background: radial-gradient(ellipse at center, #2a0508, #000 70%); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity .8s; }
+#loading .lt { font-family: var(--font-title); font-size: 96px; color: #f0e2cc; text-shadow: 0 0 40px rgba(190, 20, 30, .9); }
+#loading .ls { font-family: var(--font-text); font-style: italic; font-size: 22px; color: var(--bone-dim); margin-top: 10px; animation: pulse2 1.6s ease-in-out infinite; }
+@keyframes pulse2 { 50% { opacity: .4; } }
+#loading.done { opacity: 0; pointer-events: none; }
 .hidden { display: none !important; }
 .hud { position: absolute; inset: 0; }
 

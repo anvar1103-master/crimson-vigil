@@ -123,7 +123,7 @@ export function buildCathedralYard(scene, seed = 2024) {
       if (rng() < 0.14) P.candles(L, M, jx - 0.45, 0.0, jz + 0.2, 3, 0.15);
     }
   }
-  P.candles(L, M, 10.4, 0.0, 9.0, 5, 0.25, true);
+  P.candles(L, M, 10.4, 0.0, 9.0, 5, 0.25);
 
   // ——— Ограды ———
   P.ironFence(L, M, -16.5, 19.5, -1.9, 19.5);
@@ -239,10 +239,6 @@ function buildFacade(L, M) {
     const r0 = rose.r * 0.4 + len / 2;
     L.add(boxGeo(len, 0.09, 0.12, rng), M.trim, mat4(Math.cos(a) * r0, rose.y + Math.sin(a) * r0, -18.6, 0, 0, a));
   }
-  // Свет витража на площади.
-  const rl = new THREE.PointLight(0xc03050, 10, 16, 2);
-  rl.position.set(0, rose.y - 1, -17);
-  L.root.add(rl);
 
   // Башни.
   const lancet = lancetGlassTex();

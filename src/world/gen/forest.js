@@ -5,7 +5,7 @@ import { mat4 } from '../geo.js';
 import * as P from '../props.js';
 import * as Q from '../props2.js';
 import { registerBiome } from '../biomes.js';
-import { scatter } from './village.js';
+import { scatter, corridors } from './village.js';
 
 const V3 = THREE.Vector3;
 
@@ -68,7 +68,10 @@ export function buildForest(scene, seed = 1) {
   }
 
   // Болотца, грибы, коряги, терн, лагерь.
-  const avoid = [{ x: 0, z: -2, r: 7 }, { x: 0, z: 15, r: 4 }, { x: 0, z: 9, r: 3 }, { x: 0, z: -18, r: 3.5 }, { x: 18, z: 0, r: 3.5 }, { x: -18, z: 0, r: 3.5 }, { x: 0, z: 4, r: 2.5 }];
+  const avoid = [
+    { x: 0, z: -2, r: 7 }, { x: 0, z: 15, r: 4 }, { x: 0, z: 9, r: 3 }, { x: 0, z: -18, r: 3.5 }, { x: 18, z: 0, r: 3.5 }, { x: -18, z: 0, r: 3.5 }, { x: 0, z: 4, r: 2.5 },
+    ...corridors([{ x: 0, z: -18.5 }, { x: 18.5, z: 0 }, { x: -18.5, z: 0 }, { x: 0, z: 15 }], { x: 0, z: 5 }),
+  ];
   const spots = scatter(L, 18, 3.4, 16, avoid).filter((s) => Math.hypot(s.x, s.z) < 17.5);
   spots.forEach((s, i) => {
     const t = i % 7;
