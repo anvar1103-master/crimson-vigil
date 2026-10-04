@@ -1,14 +1,13 @@
 :root {
-  --bone: #e4d8c4;
+  --bone: #e8dcc6;
   --bone-dim: #a8998a;
   --blood: #9e1420;
-  --blood-bright: #e0303c;
-  --gold: #b8945a;
+  --blood-bright: #e2343f;
+  --gold: #c9a466;
   --gold-dim: #6e5734;
   --ink: #07040a;
-  --panel: rgba(12, 6, 10, 0.72);
-  --font-title: 'UnifrakturCook', 'Cinzel', serif;
-  --font-ui: 'Cinzel', 'Times New Roman', serif;
+  --font-title: 'UnifrakturCook', 'Cormorant SC', serif;
+  --font-ui: 'Cormorant SC', 'Cormorant Garamond', Georgia, serif;
   --font-text: 'Cormorant Garamond', Georgia, serif;
 }
 
@@ -20,5 +19,138 @@ html, body {
   user-select: none;
 }
 #game, #game canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
-#ui { position: fixed; inset: 0; pointer-events: none; }
+#ui { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
 .hidden { display: none !important; }
+.hud { position: absolute; inset: 0; }
+
+/* ——— Прицел ——— */
+.crosshair { --gap: 6px; position: absolute; left: 50%; top: 50%; width: 0; height: 0; transition: opacity .15s; }
+.crosshair i { position: absolute; background: rgba(240, 225, 205, .85); box-shadow: 0 0 2px #000, 0 0 1px #000; }
+.crosshair .t, .crosshair .b { width: 2px; height: 9px; left: -1px; }
+.crosshair .l, .crosshair .r { height: 2px; width: 9px; top: -1px; }
+.crosshair .t { bottom: var(--gap); }
+.crosshair .b { top: var(--gap); }
+.crosshair .l { right: var(--gap); }
+.crosshair .r { left: var(--gap); }
+.crosshair b { position: absolute; width: 3px; height: 3px; left: -1.5px; top: -1.5px; background: var(--blood-bright); border-radius: 50%; box-shadow: 0 0 3px #000; }
+.crosshair.aim i { opacity: .35; }
+
+.hitmarker { position: absolute; left: 50%; top: 50%; width: 0; height: 0; opacity: 0; }
+.hitmarker i { position: absolute; width: 2px; height: 11px; background: #fff; box-shadow: 0 0 3px #000; left: -1px; top: -5.5px; }
+.hitmarker i:nth-child(1) { transform: rotate(45deg) translateY(-13px); }
+.hitmarker i:nth-child(2) { transform: rotate(135deg) translateY(-13px); }
+.hitmarker i:nth-child(3) { transform: rotate(225deg) translateY(-13px); }
+.hitmarker i:nth-child(4) { transform: rotate(315deg) translateY(-13px); }
+.hitmarker.show { animation: hm .28s ease-out; }
+.hitmarker.head i { background: #ffcf6a; }
+.hitmarker.kill i { background: var(--blood-bright); height: 15px; width: 3px; }
+.hitmarker.kill { animation: hmk .45s ease-out; }
+@keyframes hm { 0% { opacity: 1; transform: scale(1.35); } 100% { opacity: 0; transform: scale(1); } }
+@keyframes hmk { 0% { opacity: 1; transform: scale(1.7) rotate(8deg); } 60% { opacity: 1; } 100% { opacity: 0; transform: scale(1.1); } }
+
+/* ——— Здоровье ——— */
+.health { position: absolute; left: 42px; bottom: 38px; display: flex; align-items: center; gap: 12px; }
+.health .vial { width: 44px; height: 44px; filter: drop-shadow(0 0 8px rgba(200, 20, 30, .6)); }
+.health .vial path { fill: #a3111c; stroke: var(--gold); stroke-width: 2; }
+.health.low .vial { animation: pulse .8s infinite; }
+@keyframes pulse { 50% { transform: scale(1.15); filter: drop-shadow(0 0 14px rgba(255, 30, 40, .9)); } }
+.health .bar {
+  position: relative; width: 300px; height: 16px; background: rgba(10, 4, 6, .75);
+  border: 1px solid var(--gold-dim); box-shadow: 0 0 0 1px #000, inset 0 0 8px #000;
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
+.health .fill, .health .lag { position: absolute; left: 0; top: 0; bottom: 0; }
+.health .lag { background: #e8d0b0; opacity: .55; }
+.health .fill { background: linear-gradient(180deg, #e0303c 0%, #8e0d18 55%, #5a0610 100%); box-shadow: 0 0 12px rgba(255, 40, 50, .6); }
+.health .shine { position: absolute; inset: 0 0 50% 0; background: linear-gradient(180deg, rgba(255,255,255,.18), transparent); }
+.health .num { font-size: 30px; font-weight: 700; color: var(--bone); text-shadow: 0 2px 6px #000, 0 0 12px rgba(160, 20, 30, .7); min-width: 52px; }
+.dash { position: absolute; left: 56px; top: 34px; width: 120px; height: 4px; background: rgba(0,0,0,.6); border: 1px solid rgba(201,164,102,.35); }
+.dash .dfill { height: 100%; background: var(--gold); transition: width .1s; box-shadow: 0 0 6px rgba(201,164,102,.6); }
+.dash span { position: absolute; left: 128px; top: -7px; font-size: 11px; letter-spacing: 2px; color: var(--bone-dim); }
+
+/* ——— Патроны ——— */
+.ammo { position: absolute; right: 44px; bottom: 34px; text-align: right; }
+.ammo .wname { font-size: 15px; letter-spacing: 4px; color: var(--gold); text-shadow: 0 2px 6px #000; margin-bottom: 4px; }
+.ammo .row { display: flex; align-items: center; gap: 14px; justify-content: flex-end; }
+.ammo .cyl { width: 74px; height: 74px; transition: transform .12s ease-out; filter: drop-shadow(0 2px 6px #000); }
+.ammo .cyl .outer { fill: rgba(16, 10, 12, .85); stroke: var(--gold-dim); stroke-width: 3; }
+.ammo .cyl .axis { fill: #1a1416; stroke: var(--gold-dim); stroke-width: 2; }
+.ammo .cyl .ch { fill: #050304; stroke: #3a3034; stroke-width: 2; transition: fill .15s; }
+.ammo .cyl .ch.full { fill: #d8d4dc; stroke: #f4eee0; filter: drop-shadow(0 0 3px rgba(220, 220, 255, .7)); }
+.ammo .count { font-size: 46px; font-weight: 700; line-height: 1; text-shadow: 0 2px 8px #000; }
+.ammo .count span { font-size: 22px; color: var(--bone-dim); }
+.ammo.empty .count b { color: var(--blood-bright); }
+.ammo .hint { font-size: 14px; letter-spacing: 2px; color: var(--bone-dim); height: 18px; margin-top: 4px; font-family: var(--font-text); font-style: italic; }
+
+/* ——— Счёт ——— */
+.score { position: absolute; right: 42px; top: 30px; text-align: right; text-shadow: 0 2px 8px #000; }
+.score > div { display: flex; align-items: baseline; justify-content: flex-end; gap: 8px; }
+.score b { font-size: 30px; font-weight: 700; }
+.score span { font-size: 14px; letter-spacing: 2px; color: var(--bone-dim); }
+.score .gold b { color: var(--gold); font-size: 22px; }
+
+/* ——— Урон ——— */
+.dmgdirs { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+.dmgdirs .dir {
+  position: absolute; left: -60px; top: -170px; width: 120px; height: 40px; transform-origin: 60px 170px;
+  background: radial-gradient(ellipse at 50% 100%, rgba(220, 20, 30, .85), transparent 70%);
+  clip-path: polygon(0 100%, 50% 0, 100% 100%, 50% 75%);
+  animation: dirfade 1.1s forwards;
+}
+@keyframes dirfade { 0% { opacity: 1; } 100% { opacity: 0; } }
+.claws { position: absolute; inset: 0; opacity: 0; }
+.claws i { position: absolute; width: 14px; height: 70vh; top: 10vh; background: linear-gradient(180deg, transparent, rgba(150, 0, 10, .85) 20%, rgba(90, 0, 6, .9) 70%, transparent); transform: rotate(28deg); border-radius: 50%; filter: blur(1px); }
+.claws i:nth-child(1) { left: 40%; } .claws i:nth-child(2) { left: 47%; height: 76vh; } .claws i:nth-child(3) { left: 54%; }
+.claws.show { animation: claws 1.4s ease-out; }
+@keyframes claws { 0% { opacity: 0; clip-path: inset(0 0 100% 0); } 8% { opacity: 1; clip-path: inset(0 0 0 0); } 60% { opacity: .8; } 100% { opacity: 0; } }
+
+.numbers { position: absolute; inset: 0; overflow: hidden; }
+.dnum { position: absolute; left: 0; top: 0; font-size: 22px; font-weight: 700; color: var(--bone); text-shadow: 0 2px 4px #000, 0 0 6px rgba(0,0,0,.8); }
+.dnum.crit { color: #ffcf6a; font-size: 30px; }
+
+/* ——— Баннеры и реплики ——— */
+.banner { position: absolute; left: 0; right: 0; top: 22%; text-align: center; opacity: 0; }
+.banner .t { font-family: var(--font-ui); font-size: 64px; font-weight: 700; letter-spacing: 10px; color: var(--bone); text-shadow: 0 0 30px rgba(200, 20, 30, .8), 0 4px 10px #000; }
+.banner .s { font-family: var(--font-text); font-style: italic; font-size: 24px; color: var(--bone-dim); margin-top: 6px; text-shadow: 0 2px 6px #000; }
+.banner.show { animation: banner 3.2s ease-out forwards; }
+@keyframes banner { 0% { opacity: 0; letter-spacing: 30px; filter: blur(8px); } 15% { opacity: 1; letter-spacing: 10px; filter: blur(0); } 75% { opacity: 1; } 100% { opacity: 0; } }
+.bark { position: absolute; left: 50%; bottom: 120px; transform: translateX(-50%); max-width: 760px; text-align: center; font-family: var(--font-text); font-size: 24px; font-style: italic; color: var(--bone); text-shadow: 0 2px 6px #000, 0 0 2px #000; opacity: 0; }
+.bark .who { font-family: var(--font-ui); font-style: normal; color: var(--gold); font-size: 18px; letter-spacing: 2px; }
+.bark.show { animation: bark 4.2s ease-out forwards; }
+@keyframes bark { 0% { opacity: 0; transform: translate(-50%, 8px); } 8% { opacity: 1; transform: translate(-50%, 0); } 85% { opacity: 1; } 100% { opacity: 0; } }
+.prompt { position: absolute; left: 50%; top: 60%; transform: translateX(-50%); font-size: 22px; letter-spacing: 2px; opacity: 0; transition: opacity .2s; text-shadow: 0 2px 6px #000; }
+.prompt.show { opacity: 1; }
+
+/* ——— Экраны ——— */
+.screen { position: absolute; inset: 0; pointer-events: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.menu { background: radial-gradient(ellipse at 50% 60%, transparent 0%, rgba(5, 0, 2, .35) 45%, rgba(4, 0, 2, .85) 100%); }
+.menu .pre { font-family: var(--font-text); font-style: italic; font-size: 20px; color: var(--bone-dim); letter-spacing: 2px; }
+.menu h1 {
+  font-family: var(--font-title); font-weight: 700; font-size: 128px; margin: 4px 0 0; line-height: 1;
+  color: #f0e2cc; text-shadow: 0 0 40px rgba(190, 20, 30, .9), 0 0 4px rgba(255, 80, 80, .6), 0 6px 18px #000;
+  animation: breathe 5s ease-in-out infinite;
+}
+@keyframes breathe { 50% { text-shadow: 0 0 60px rgba(220, 30, 40, 1), 0 0 6px rgba(255, 80, 80, .7), 0 6px 18px #000; } }
+.menu .sub { font-family: var(--font-ui); font-size: 26px; letter-spacing: 14px; color: var(--blood-bright); margin-top: 6px; text-shadow: 0 2px 8px #000; }
+.menu .lore { font-family: var(--font-text); font-size: 22px; line-height: 1.5; color: var(--bone); margin: 34px 0 30px; text-shadow: 0 2px 6px #000; }
+button {
+  pointer-events: auto; cursor: pointer; font-family: var(--font-ui); font-size: 26px; font-weight: 700; letter-spacing: 6px;
+  color: var(--bone); background: linear-gradient(180deg, rgba(110, 10, 20, .85), rgba(50, 4, 10, .9));
+  border: 1px solid var(--gold); padding: 14px 54px; box-shadow: 0 0 0 3px rgba(0,0,0,.6), 0 0 30px rgba(160, 10, 20, .5);
+  clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 14px 100%, 0 50%);
+  transition: transform .15s, filter .15s;
+}
+button:hover { transform: scale(1.04); filter: brightness(1.25); }
+.menu .controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 22px; max-width: 760px; margin-top: 34px; font-family: var(--font-text); font-size: 17px; color: var(--bone-dim); }
+.menu .controls b { font-family: var(--font-ui); color: var(--bone); margin-right: 4px; }
+.menu .foot { position: absolute; bottom: 24px; font-family: var(--font-text); font-style: italic; color: rgba(200, 180, 160, .5); letter-spacing: 2px; }
+.pause { background: rgba(5, 0, 3, .55); cursor: pointer; }
+.pause h2, .death h2 { font-family: var(--font-ui); font-size: 72px; letter-spacing: 16px; margin: 0; text-shadow: 0 0 30px rgba(190, 20, 30, .8), 0 4px 12px #000; }
+.pause .hint { font-family: var(--font-text); font-style: italic; font-size: 22px; color: var(--bone-dim); margin-top: 10px; }
+.death { background: radial-gradient(ellipse at center, rgba(60, 0, 6, .4), rgba(10, 0, 2, .92)); animation: fadein 1.6s ease-out; }
+.death h2 { color: var(--blood-bright); font-size: 96px; }
+.death .epitaph { font-family: var(--font-text); font-style: italic; font-size: 26px; margin: 12px 0 28px; color: var(--bone); }
+.death .stats { display: flex; gap: 42px; margin-bottom: 36px; }
+.death .stats div { display: flex; flex-direction: column; font-family: var(--font-text); font-size: 17px; color: var(--bone-dim); letter-spacing: 2px; }
+.death .stats b { font-family: var(--font-ui); font-size: 44px; color: var(--bone); }
+@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
