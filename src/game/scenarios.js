@@ -135,6 +135,7 @@ export const SCENARIOS = {
       g.scene.background = new THREE.Color(0x3a3a40);
       g.hud.hud.style.display = 'none';
       g.gunlab = g.params.get('view') || 'side';
+      if (g.params.has('hands')) g.settings.showHands = true;
       const wi = Number(g.params.get('weapon') || 0);
       if (wi) { g.vm.root.remove(g.weapon.model); g.weaponIndex = wi; g.weapon = g.weapons[wi]; g.vm.root.add(g.weapon.model); }
     },

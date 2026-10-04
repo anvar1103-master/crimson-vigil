@@ -45,7 +45,7 @@ export class Game {
     this.scenario = this.scenarioName ? SCENARIOS[this.scenarioName] || {} : null;
     if (this.scenario) seedRandom(Number(this.params.get('seed') || 1));
     this.settings = loadSettings();
-    if (this.scenario) this.settings = { ...this.settings, fov: 68, quality: 'high', sensitivity: 1 };
+    if (this.scenario) this.settings = { ...this.settings, fov: 68, quality: 'high', sensitivity: 1, showHands: this.params.has('hands') };
     this.quality = QUALITY[this.settings.quality] || QUALITY.high;
     this.pixelRatio = Math.min(devicePixelRatio, this.quality.maxPixelRatio);
     this.meta = loadMeta();
@@ -573,6 +573,15 @@ export class Game {
       this.applyAuras(dtw);
     }
     this.vm.root.visible = this.state !== 'menu';
+    if (this.gunlab && this.gunlab !== 'hip') {
+      // Лаборатория оружия: модель в фиксированной позе для осмотра.
+      const m = this.weapon.model;
+      if (this.gunlab === 'side') { m.position.set(0, 0, -0.42); m.rotation.set(0, Math.PI / 2, 0); }
+      else if (this.gunlab === 'right') { m.position.set(0, 0, -0.42); m.rotation.set(0, -Math.PI / 2, 0); }
+      else if (this.gunlab === 'front') { m.position.set(0, -0.03, -0.35); m.rotation.set(0.2, 0.5, 0); }
+      this.vm.root.position.set(0, 0, 0);
+      this.vm.root.rotation.set(0, 0, 0);
+    }
 
     // Сердцебиение и реплики на низком здоровье.
     if (playing && this.player.alive && this.player.health < 35) {

@@ -2,7 +2,7 @@
 // Хранятся в localStorage; без хранилища просто действуют до перезагрузки.
 const KEY = 'crimson-vigil-settings-v1';
 
-export const DEFAULT_SETTINGS = { sensitivity: 1, fov: 68, volume: 0.8, quality: 'high', showFps: false, invertY: false, showHands: false };
+export const DEFAULT_SETTINGS = { sensitivity: 1, fov: 68, volume: 0.8, quality: 'high', showFps: false, invertY: false, showHands: true };
 
 export function loadSettings() {
   try {

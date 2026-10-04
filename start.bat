@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 rem Запуск Crimson Vigil: локальный сервер + браузер.
 cd /d "%~dp0"
 start "" cmd /c "timeout /t 2 >nul & start http://localhost:8080"

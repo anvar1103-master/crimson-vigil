@@ -127,12 +127,12 @@ export function buildRevolverModel() {
   return { gun, drum, crane, hammer, trigger, chambers, muzzle: new V3(0, 0.049, -0.25) };
 }
 
-// Перчатка, держащая рукоять, и рукав плаща.
+// Перчатка, держащая рукоять, и рукав плаща. Пространство оружия: −Z вперёд, рукоять около z≈0.05.
 export function buildHand() {
-  const leather = new THREE.MeshStandardMaterial({ color: 0x1a1214, roughness: 0.55, metalness: 0.05 });
-  const coat = new THREE.MeshStandardMaterial({ color: 0x1e1418, roughness: 0.8 });
-  const cuff = new THREE.MeshStandardMaterial({ color: 0x5a0e16, roughness: 0.7 });
-  const ring = new THREE.MeshStandardMaterial({ color: 0xd2d4da, metalness: 1, roughness: 0.2 });
+  const leather = new THREE.MeshPhysicalMaterial({ color: 0x2a1c1a, roughness: 0.48, sheen: 0.6, sheenColor: new THREE.Color(0x6a4a40), sheenRoughness: 0.5 });
+  const coat = new THREE.MeshStandardMaterial({ color: 0x1a1216, roughness: 0.85 });
+  const cuff = new THREE.MeshStandardMaterial({ color: 0x6a0c18, roughness: 0.6 });
+  const silver = new THREE.MeshStandardMaterial({ color: 0xd2d4da, metalness: 1, roughness: 0.2 });
   const hand = new THREE.Group();
   const add = (geo, mat, x, y, z, rx = 0, ry = 0, rz = 0) => {
     const m = new THREE.Mesh(geo, mat);
@@ -140,22 +140,41 @@ export function buildHand() {
     hand.add(m);
     return m;
   };
-  // Ладонь обхватывает рукоять.
-  add(new THREE.CapsuleGeometry(0.024, 0.05, 4, 10), leather, 0.004, -0.05, 0.068, 0.25, 0, 0);
-  // Пальцы, обёрнутые вокруг рукояти спереди.
+  // Наклон рукояти «плуг»: пальцы идут вдоль неё.
+  const gripTilt = 0.42;
+  const gx = 0, gz = 0.058;
+  // Тыльная сторона ладони — справа от рукояти.
+  const back = add(new THREE.CapsuleGeometry(0.018, 0.04, 6, 12), leather, 0.02, -0.044, 0.064, gripTilt, 0, 0);
+  back.scale.set(0.75, 1, 1.25);
+  // Три пальца обхватывают рукоять спереди — дуги тора вокруг её оси.
   for (let i = 0; i < 3; i++) {
-    const f = add(new THREE.CapsuleGeometry(0.0095, 0.028, 4, 8), leather, -0.006, -0.028 - i * 0.021, 0.027 + i * 0.006, 0, 0, Math.PI / 2);
-    f.rotation.y = 0.35;
+    const y = -0.026 - i * 0.02;
+    const zOff = Math.sin(gripTilt) * (y + 0.02);
+    const f = add(new THREE.TorusGeometry(0.02, 0.0098 - i * 0.0006, 8, 18, Math.PI * 1.25), leather, gx, y, gz + zOff - 0.004);
+    f.rotation.set(Math.PI / 2 + gripTilt * 0.3, 0, Math.PI * 0.4);
   }
-  // Указательный — на спуске.
-  add(new THREE.CapsuleGeometry(0.009, 0.03, 4, 8), leather, -0.008, -0.004, 0.0, Math.PI / 2 - 0.2, 0, 0.15);
-  // Большой палец вдоль рамы.
-  add(new THREE.CapsuleGeometry(0.0095, 0.034, 4, 8), leather, -0.018, 0.024, 0.03, Math.PI / 2 + 0.3, 0, 0);
-  add(new THREE.TorusGeometry(0.0105, 0.0022, 6, 14), ring, -0.006, -0.028, 0.03, 0, Math.PI / 2 - 0.35, 0);
-  // Запястье, манжета и рукав.
-  add(new THREE.CylinderGeometry(0.025, 0.027, 0.06, 12), leather, 0.01, -0.09, 0.1, 0.9, 0, 0);
-  add(new THREE.CylinderGeometry(0.036, 0.034, 0.03, 14), cuff, 0.012, -0.112, 0.128, 0.9, 0, 0);
-  add(new THREE.CylinderGeometry(0.045, 0.05, 0.3, 14), coat, 0.02, -0.2, 0.24, 0.9, 0, 0);
+  // Указательный — на спусковом крючке.
+  const idx = add(new THREE.CapsuleGeometry(0.0088, 0.032, 4, 8), leather, 0.006, -0.004, 0.012, Math.PI / 2 + 0.35, 0, -0.25);
+  idx.scale.set(1, 1, 1);
+  add(new THREE.SphereGeometry(0.0088, 8, 6), leather, -0.002, -0.012, -0.008);
+  // Большой палец лежит вдоль левого бока рамы.
+  add(new THREE.CapsuleGeometry(0.0092, 0.036, 4, 8), leather, -0.017, 0.022, 0.036, Math.PI / 2 - 0.12, 0, 0.1);
+  // Серебряный перстень Ордена.
+  add(new THREE.TorusGeometry(0.0108, 0.0024, 6, 16), silver, 0.004, -0.046, 0.04, Math.PI / 2, 0, 0.4);
+  // Запястье, багровая манжета, рукав плаща — по одной линии от кисти назад-вниз.
+  const base = new V3(0.022, -0.075, 0.09);
+  const d = new V3(0.22, -0.62, 0.75).normalize();
+  const q = new THREE.Quaternion().setFromUnitVectors(new V3(0, -1, 0), d);
+  const seg = (geo, mat, from, len) => {
+    const m = new THREE.Mesh(geo, mat);
+    m.position.copy(base).addScaledVector(d, from + len / 2);
+    m.quaternion.copy(q);
+    hand.add(m);
+  };
+  seg(new THREE.CylinderGeometry(0.026, 0.023, 0.07, 12), leather, -0.01, 0.07);
+  seg(new THREE.CylinderGeometry(0.036, 0.034, 0.04, 14), cuff, 0.055, 0.04);
+  seg(new THREE.CylinderGeometry(0.05, 0.045, 0.34, 14), coat, 0.09, 0.34);
+  for (const m of hand.children) m.castShadow = false;
   return hand;
 }
 
