@@ -74,6 +74,34 @@ export class Enemy {
     this.seed = Math.random() * 100;
     this.elite = null;
     this.xp = 10;
+    this.sizeScale = 1;
+    this.burnT = 0; this.burnDps = 0;
+    this.slowT = 0; this.slowAmt = 0;
+    this.dotAcc = 0;
+  }
+
+  get speedFactor() { return this.slowT > 0 ? 1 - this.slowAmt : 1; }
+
+  // Горение и замедление от реликвий.
+  tickStatus(dt) {
+    if (!this.alive) return;
+    if (this.slowT > 0) this.slowT -= dt;
+    if (this.burnT > 0) {
+      this.burnT -= dt;
+      this.dot(this.burnDps * dt);
+      if (Math.random() < 0.5) {
+        const c = this.center();
+        this.game.fx.sparks.spawn({ x: c.x + (Math.random() - 0.5) * 0.5, y: c.y + (Math.random() - 0.3) * 1.2, z: c.z + (Math.random() - 0.5) * 0.5, vy: 1.5, life: 0.5, size: 0.06, size1: 0, r: 3, g: 1.2, b: 0.2, a: 1 });
+      }
+    }
+  }
+
+  // Периодический урон без стаггера и вспышек; числа урона копятся и показываются пачкой.
+  dot(amount) {
+    if (!this.alive) return;
+    this.dotAcc += amount;
+    if (this.takeDamage(amount, { dot: true })) this.game.onEnemyKilled(this, { headshot: false });
+    else if (this.dotAcc > 8) { this.game.hud.damageNumber(this.center(), this.dotAcc, false, true); this.dotAcc = 0; }
   }
 
   setState(s) { this.state = s; this.stateT = 0; }
@@ -105,7 +133,8 @@ export class Enemy {
       s.node.localToWorld(_c);
       _oc.copy(origin).sub(_c);
       const b = _oc.dot(dir);
-      const c = _oc.lengthSq() - s.r * s.r;
+      const r = s.r * this.sizeScale;
+      const c = _oc.lengthSq() - r * r;
       const disc = b * b - c;
       if (disc < 0) continue;
       const sq = Math.sqrt(disc);
@@ -118,7 +147,9 @@ export class Enemy {
     return best;
   }
 
-  center(out = new V3()) { return out.set(this.pos.x, this.pos.y + 1.1, this.pos.z); }
+  center(out = new V3()) { return out.set(this.pos.x, this.pos.y + 1.1 * this.sizeScale, this.pos.z); }
+
+  setRim(r, g, b) { for (const m of this.materials) m.userData.rim.value.set(r, g, b); }
 
   dispose() {
     this.game.scene.remove(this.root);

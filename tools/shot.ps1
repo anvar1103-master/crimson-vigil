@@ -24,7 +24,7 @@ $chromeArgs = @(
     '--enable-logging=stderr', '--v=0', "--screenshot=$png", $url
 )
 $p = Start-Process -FilePath $chrome -ArgumentList $chromeArgs -RedirectStandardError $log -Wait -PassThru -NoNewWindow
-Get-Content $log | Where-Object { $_ -match 'CONSOLE' } | ForEach-Object {
+Get-Content $log -Encoding UTF8 | Where-Object { $_ -match 'CONSOLE' } | ForEach-Object {
     ($_ -replace '^\[[^\]]*CONSOLE[^\]]*\]\s*', '') -replace ', source: http://localhost:\d+/', ' @ '
 }
 if (Test-Path $png) { "saved: $png" } else { "NO SCREENSHOT (exit $($p.ExitCode))" }

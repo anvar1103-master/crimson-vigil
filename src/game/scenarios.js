@@ -173,6 +173,42 @@ export const SCENARIOS = {
     },
   },
 
+  // Полный цикл забега ботом: бой → награда → врата → следующая зона.
+  flow: {
+    steps: 9000,
+    setup(g) {
+      g.audio.enabled = false;
+      g.startRun();
+      g.player.maxHealth = g.player.health = 400; // бот слабый — даём ему форы, проверяем логику, а не баланс
+    },
+    input(g, i) {
+      const p = g.player, inp = {};
+      if (i % 900 === 0) console.log(`FLOW t=${(i / 60).toFixed(0)}s depth=${g.run.depth} biome=${g.run.biome} zone=${g.zones.state} hp=${Math.round(p.health)} kills=${g.run.kills} gold=${g.run.gold} relics=${g.run.relics.map((r) => r.id).join(',')} state=${g.state}`);
+      if (!p.alive) return inp;
+      const steer = (target, stopDist = 0.5) => {
+        const dx = target.x - p.pos.x, dz = target.z - p.pos.z;
+        const want = Math.atan2(-dx, -dz);
+        let dy = want - p.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy));
+        inp.lookX = -Math.max(-0.15, Math.min(0.15, dy * 0.4));
+        inp.lookY = (p.pitch - 0.0) * 0.2;
+        inp.forward = Math.hypot(dx, dz) > stopDist && Math.abs(dy) < 1.2;
+        return Math.hypot(dx, dz);
+      };
+      const alive = g.enemies.list.filter((e) => e.alive && e.state !== 'rise');
+      if (alive.length) return SCENARIOS.bot.input(g, i);
+      const item = g.zones.items.find((it) => it.active);
+      if (item) {
+        const d = steer(item.pos, 1.2);
+        if (d < 1.8 && i % 20 === 0) inp.interact = true;
+        return inp;
+      }
+      const portal = g.zones.portals.find((pt) => pt.active && pt.open > 0.6);
+      if (portal) steer(portal.pos, 0);
+      // Собираем монеты по пути.
+      return inp;
+    },
+  },
+
   menu: { steps: 30, menu: true },
   death: { steps: 120, setup(g) { g.player.damage(500, ahead(g, 2)); } },
 };

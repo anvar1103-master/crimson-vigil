@@ -180,9 +180,12 @@ export class Level {
   }
 
   dispose() {
+    const mats = new Set();
     this.root.traverse((o) => {
       o.geometry?.dispose?.();
+      if (o.material) for (const m of [].concat(o.material)) mats.add(m);
     });
+    for (const m of mats) m.dispose();
     this.scene.remove(this.root);
   }
 }

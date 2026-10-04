@@ -25,8 +25,8 @@ export const yardAtmosphere = {
   lightning: true,
 };
 
-export function buildCathedralYard(scene) {
-  const L = new Level(scene, 2024);
+export function buildCathedralYard(scene, seed = 2024) {
+  const L = new Level(scene, seed);
   const M = P.createMaterials();
   L.mats = M;
   L.atmosphere = yardAtmosphere;
@@ -150,6 +150,14 @@ export function buildCathedralYard(scene) {
   L.flush();
   L.colliders = L.colliders.filter((c) => !(c.type === 'circle' && (Math.abs(c.x) > 21 || Math.abs(c.z) > 21)));
 
+  L.playerStart.set(0, 0, 10);
+  L.rewardPoint = new V3(0, 0, -2.5);
+  L.bossPoint = new V3(0, 0, -15.5);
+  L.exitPoints = [
+    { pos: new V3(0, 0, 18.3), yaw: 0 },
+    { pos: new V3(-14, 0, -16.4), yaw: 0 },
+    { pos: new V3(5.2, 0, -16.6), yaw: 0 },
+  ];
   L.spawnPoints = [
     new V3(0, 0, -16.6), new V3(-14.2, 0, -9), new V3(-14.2, 0, 9), new V3(12.2, 0, -12),
     new V3(13.5, 0, 7), new V3(17.5, 0, -3), new V3(0, 0, 18.3), new V3(9.5, 0, 16),

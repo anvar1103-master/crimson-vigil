@@ -89,7 +89,28 @@ export class Weather {
     const t = this.game.time;
     this.flashSeq = [[t, 1], [t + 0.08, 0.3], [t + 0.16, 0.9]];
     if (rand() < 0.5) this.flashSeq.push([t + 0.35, 0.6]);
-    this.game.audio.thunder(randRange(0.4, 1.8));
+    // Гроза-модификатор: молния бьёт в случайную тварь.
+    const targets = this.stormStrikes ? this.game.enemies.list.filter((e) => e.alive && e.state !== 'rise') : [];
+    if (targets.length) {
+      const e = targets[Math.floor(rand() * targets.length)];
+      this.boltTo(e.center());
+      if (e.takeDamage(90, { dir: new THREE.Vector3(0, -1, 0), knockback: 0 })) this.game.onEnemyKilled(e, { headshot: false });
+      this.game.audio.thunder(0.05);
+    } else this.game.audio.thunder(randRange(0.4, 1.8));
+  }
+
+  // Видимый разряд с неба в точку.
+  boltTo(p) {
+    const fx = this.game.fx;
+    let x = p.x + randRange(-3, 3), z = p.z + randRange(-3, 3);
+    for (let y = 40; y > p.y; y -= 0.5) {
+      const k = (y - p.y) / 40;
+      x += (p.x - x) * 0.08 + randRange(-0.35, 0.35) * k;
+      z += (p.z - z) * 0.08 + randRange(-0.35, 0.35) * k;
+      fx.sparks.spawn({ x, y, z, life: 0.35, size: 0.35, size1: 0.1, r: 3, g: 3, b: 4, a: 1 });
+    }
+    fx.flash(p, { color: 0xc8c0ff, intensity: 80, dur: 0.4, distance: 25 });
+    fx.ash(p, 2);
   }
 
   update(dt) {
@@ -110,7 +131,7 @@ export class Weather {
     }
     if (this.lightning) {
       this.nextStrike -= dt;
-      if (this.nextStrike <= 0) { this.strike(); this.nextStrike = randRange(9, 22); }
+      if (this.nextStrike <= 0) { this.strike(); this.nextStrike = this.stormStrikes ? randRange(4, 7) : randRange(9, 22); }
     }
     let flash = 0;
     for (const [t0, k] of this.flashSeq) {

@@ -70,6 +70,12 @@ export class HUD {
     this.hud.append(this.bark);
     this.prompt = h('div', 'prompt');
     this.hud.append(this.prompt);
+    this.relicsEl = h('div', 'relics');
+    this.hud.append(this.relicsEl);
+    this.zoneEl = h('div', 'zoneinfo', '<div class="zn"></div><div class="zo"></div><div class="zm"></div>');
+    this.hud.append(this.zoneEl);
+    this.bossEl = h('div', 'bossbar hidden', '<div class="bn"></div><div class="bb"><div class="bl"></div><div class="bf"></div></div>');
+    this.hud.append(this.bossEl);
 
     // ——— Меню ———
     this.menu = h('div', 'screen menu', `
@@ -80,6 +86,7 @@ export class HUD {
       </div>
       <div class="lore">Сорок ночей Багровая Луна не заходит над провинцией Варн.<br>Последний охотник Ордена идёт туда, откуда не возвращаются.</div>
       <button class="start">Начать охоту</button>
+      <button class="order small">Святилище Ордена</button>
       <div class="controls">
         <span><b>WASD</b> движение</span><span><b>Мышь</b> прицел</span><span><b>ЛКМ</b> огонь</span><span><b>ПКМ</b> прицеливание</span>
         <span><b>R</b> перезарядка</span><span><b>Shift</b> бег</span><span><b>Q</b> рывок</span><span><b>Space</b> прыжок</span>
@@ -87,6 +94,7 @@ export class HUD {
       <div class="foot">Гидеон Вейл · охотник на вампиров</div>`);
     root.append(this.menu);
     this.startBtn = this.menu.querySelector('.start');
+    this.orderBtn = this.menu.querySelector('.order');
 
     this.pause = h('div', 'screen pause hidden', '<h2>Пауза</h2><div class="hint">Щёлкните, чтобы вернуться в ночь</div>');
     root.append(this.pause);
@@ -138,8 +146,27 @@ export class HUD {
     void this.hit.offsetWidth;
   }
 
-  damageNumber(point, dmg, special) {
-    const e = h('div', 'dnum' + (special ? ' crit' : ''), Math.round(dmg).toString());
+  setZone(name, sub, mod) {
+    this.zoneEl.querySelector('.zn').textContent = name;
+    this.zoneEl.querySelector('.zo').textContent = sub;
+    this.zoneEl.querySelector('.zm').textContent = mod || '';
+  }
+
+  setRelics(relics) {
+    this.relicsEl.innerHTML = relics.map((r) => `<div class="r ${r.rarity || ''}" title="${r.name}: ${r.desc}">${r.glyph}</div>`).join('');
+  }
+
+  showBoss(enemy) {
+    this.boss = enemy;
+    this.bossEl.classList.toggle('hidden', !enemy);
+    if (enemy) {
+      this.bossEl.querySelector('.bn').textContent = enemy.bossName || 'Повелитель ночи';
+      this.bossLag = 1;
+    }
+  }
+
+  damageNumber(point, dmg, special, dot = false) {
+    const e = h('div', 'dnum' + (special ? ' crit' : '') + (dot ? ' dot' : ''), Math.round(dmg).toString());
     this.numbers.append(e);
     this.nums.push({ e, p: point.clone().add(new THREE.Vector3((Math.random() - 0.5) * 0.3, 0.2, 0)), t: 0 });
     if (this.nums.length > 24) this.nums.shift().e.remove();
@@ -185,15 +212,39 @@ export class HUD {
     this.prompt.classList.toggle('show', !!text);
   }
 
+  setMeta(meta) {
+    let el = this.menu.querySelector('.metainfo');
+    if (!el) {
+      el = h('div', 'metainfo');
+      this.menu.append(el);
+    }
+    el.innerHTML = meta.runs ? `<span>◆ ${meta.shards} кровавых осколков</span><span>Ночей: ${meta.runs}</span><span>Побед: ${meta.wins}</span>` : '';
+  }
+
+  showVictory(run) {
+    this.death.querySelector('h2').textContent = 'Рассвет';
+    this.death.querySelector('.epitaph').textContent = 'Багровая Луна гаснет. Впервые за сорок ночей над Варном встаёт солнце.';
+    this.fillStats(run);
+    this.death.classList.add('victory');
+    this.show('death');
+  }
+
+  fillStats(run) {
+    const m = Math.floor(run.time / 60), s = Math.floor(run.time % 60).toString().padStart(2, '0');
+    this.death.querySelector('.stats').innerHTML =
+      `<div><b>${run.kills}</b>упокоено</div><div><b>${run.headshots}</b>в голову</div><div><b>${run.depth + 1}</b>зон</div>` +
+      `<div><b>${run.relics.length}</b>реликвий</div><div><b>${m}:${s}</b>в ночи</div><div><b>◆ ${run.shardsEarned ?? 0}</b>осколков</div>`;
+  }
+
   showDeath(run) {
+    this.death.querySelector('h2').textContent = 'Вы пали';
+    this.death.classList.remove('victory');
     const lines = [
       'Луна взошла и над его могилой.', 'Серебро кончилось раньше, чем ночь.', 'Орден запомнит имя. Варн — нет.',
       'Даже охотники становятся добычей.',
     ];
     this.death.querySelector('.epitaph').textContent = lines[Math.floor(Math.random() * lines.length)];
-    const m = Math.floor(run.time / 60), s = Math.floor(run.time % 60).toString().padStart(2, '0');
-    this.death.querySelector('.stats').innerHTML =
-      `<div><b>${run.kills}</b>упокоено</div><div><b>${run.headshots}</b>в голову</div><div><b>${run.wave}</b>волн</div><div><b>${m}:${s}</b>в ночи</div>`;
+    this.fillStats(run);
     this.show('death');
   }
 
@@ -260,5 +311,11 @@ export class HUD {
     const run = game.run;
     this.killsNum.textContent = run.kills;
     this.goldNum.textContent = run.gold;
+    if (this.boss) {
+      const k = Math.max(0, this.boss.hp / this.boss.maxHp);
+      this.bossLag = Math.max(k, (this.bossLag ?? 1) - dt * 0.25);
+      this.bossEl.querySelector('.bf').style.width = `${k * 100}%`;
+      this.bossEl.querySelector('.bl').style.width = `${this.bossLag * 100}%`;
+    }
   }
 }

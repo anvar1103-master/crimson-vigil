@@ -290,9 +290,11 @@ export class Revolver {
     const muzzleWorld = this.muzzleWorld();
     game.fx.flash(muzzleWorld, { intensity: 40, dur: 0.07, distance: 16 });
     game.fx.muzzleSmoke(muzzleWorld, dir, 1);
+    game.run.shotCount++;
+    const explosive = stats.explosiveEvery > 0 && game.run.shotCount % stats.explosiveEvery === 0;
     game.combat.hitscan(origin, dir, {
-      damage: this.damage * stats.damage, headMul: this.headMul * stats.headMul, pierce: stats.pierce,
-      knockback: 2.2, source: 'revolver', muzzle: muzzleWorld,
+      damage: this.damage * stats.damage, headMul: this.headMul * stats.headMul, pierce: stats.pierce + (this.pierceBonus || 0),
+      knockback: 2.2, source: 'revolver', muzzle: muzzleWorld, explosive, ricochet: stats.ricochet,
     });
   }
 
@@ -326,7 +328,7 @@ export class Revolver {
     this.cooldown -= dt;
     this.queuedShot -= dt;
     this.stateT += dt;
-    const reloadSpeed = stats.reloadSpeed;
+    const reloadSpeed = stats.reloadSpeed * (this.reloadMul || 1);
 
     if (input.reload) this.startReload();
     if (input.firePressed) this.tryFire();

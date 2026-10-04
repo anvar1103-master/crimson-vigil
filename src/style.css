@@ -145,6 +145,7 @@ button {
   transition: transform .15s, filter .15s;
 }
 button:hover { transform: scale(1.04); filter: brightness(1.25); }
+button.small { font-size: 18px; padding: 9px 34px; margin-top: 14px; letter-spacing: 4px; background: linear-gradient(180deg, rgba(40, 20, 26, .85), rgba(20, 8, 12, .9)); }
 .menu .controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 22px; max-width: 760px; margin-top: 34px; font-family: var(--font-text); font-size: 17px; color: var(--bone-dim); }
 .menu .controls b { font-family: var(--font-ui); color: var(--bone); margin-right: 4px; }
 .menu .foot { position: absolute; bottom: 24px; font-family: var(--font-text); font-style: italic; color: rgba(200, 180, 160, .5); letter-spacing: 2px; }
@@ -158,3 +159,63 @@ button:hover { transform: scale(1.04); filter: brightness(1.25); }
 .death .stats div { display: flex; flex-direction: column; font-family: var(--font-text); font-size: 17px; color: var(--bone-dim); letter-spacing: 2px; }
 .death .stats b { font-family: var(--font-ui); font-size: 44px; color: var(--bone); }
 @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+.death.victory { background: radial-gradient(ellipse at center, rgba(120, 60, 20, .35), rgba(10, 4, 2, .92)); }
+.death.victory h2 { color: #ffd890; text-shadow: 0 0 40px rgba(255, 180, 80, .8), 0 4px 12px #000; }
+.metainfo { display: flex; gap: 26px; margin-top: 22px; font-family: var(--font-text); font-size: 18px; color: var(--bone-dim); }
+.metainfo span:first-child { color: var(--blood-bright); }
+
+/* ——— Выбор наград ——— */
+.choice { background: radial-gradient(ellipse at center, rgba(30, 0, 6, .55), rgba(5, 0, 2, .9)); animation: fadein .3s ease-out; }
+.choice .ctitle { font-family: var(--font-ui); font-size: 54px; letter-spacing: 10px; text-shadow: 0 0 30px rgba(190, 20, 30, .8), 0 4px 12px #000; }
+.choice .csub { font-family: var(--font-text); font-style: italic; font-size: 22px; color: var(--bone-dim); margin: 6px 0 34px; }
+.choice .cards { display: flex; gap: 26px; justify-content: center; flex-wrap: wrap; max-width: 1200px; }
+.card {
+  position: relative; width: 250px; min-height: 340px; padding: 26px 20px 20px; cursor: pointer; pointer-events: auto;
+  background: linear-gradient(180deg, rgba(40, 12, 18, .95), rgba(14, 6, 10, .97));
+  border: 1px solid var(--gold-dim); box-shadow: 0 0 0 4px rgba(0,0,0,.6), 0 12px 40px rgba(0,0,0,.8), inset 0 0 40px rgba(120, 10, 20, .25);
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  transition: transform .18s, box-shadow .18s, border-color .18s;
+  animation: cardin .45s cubic-bezier(.2, .9, .3, 1.2) backwards;
+}
+@keyframes cardin { from { opacity: 0; transform: translateY(40px) scale(.9); } }
+.card:hover { transform: translateY(-10px) scale(1.03); border-color: var(--gold); box-shadow: 0 0 0 4px rgba(0,0,0,.6), 0 18px 50px rgba(0,0,0,.9), 0 0 40px rgba(200, 30, 40, .45), inset 0 0 50px rgba(150, 20, 30, .35); }
+.card .key { position: absolute; top: 8px; left: 12px; font-size: 16px; color: var(--bone-dim); }
+.card .glyph { font-family: 'Segoe UI Symbol', serif; font-size: 64px; line-height: 1.2; color: #f4e8d8; text-shadow: 0 0 22px rgba(230, 40, 50, .9); margin-bottom: 8px; }
+.card .name { font-size: 25px; font-weight: 700; line-height: 1.15; color: var(--bone); }
+.card .rar { font-family: var(--font-text); font-style: italic; font-size: 15px; color: var(--bone-dim); margin: 4px 0 14px; letter-spacing: 1px; }
+.card .desc { font-family: var(--font-text); font-size: 20px; line-height: 1.35; color: #d8ccc0; }
+.card .price { margin-top: auto; padding-top: 14px; font-size: 22px; color: var(--gold); }
+.card.rare { border-color: #8a6ab0; } .card.rare .glyph { text-shadow: 0 0 22px rgba(160, 110, 255, .9); } .card.rare .rar { color: #b89ae0; }
+.card.cursed { border-color: #a01020; background: linear-gradient(180deg, rgba(60, 4, 10, .96), rgba(16, 2, 4, .97)); } .card.cursed .rar { color: var(--blood-bright); }
+.card.upgrade .glyph { text-shadow: 0 0 22px rgba(140, 170, 230, .9); }
+.card.disabled { opacity: .4; cursor: not-allowed; filter: grayscale(.6); }
+.card.disabled:hover { transform: none; }
+.choice .leave { margin-top: 30px; font-size: 20px; padding: 10px 40px; }
+.choice .cfoot { margin-top: 18px; font-family: var(--font-text); font-size: 18px; color: var(--bone-dim); }
+
+/* ——— Переходы ——— */
+.fade { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity .6s ease; display: flex; align-items: center; justify-content: center; z-index: 5; }
+.fade.on { opacity: 1; }
+.fade .tc { text-align: center; }
+.fade .tc-pre { font-family: var(--font-text); font-style: italic; font-size: 22px; color: var(--bone-dim); letter-spacing: 3px; }
+.fade .tc-title { font-family: var(--font-ui); font-size: 70px; letter-spacing: 10px; margin: 6px 0; text-shadow: 0 0 30px rgba(190, 20, 30, .9); }
+.fade .tc-sub { font-family: var(--font-text); font-style: italic; font-size: 24px; color: var(--blood-bright); }
+.fade.on .tc { animation: tcin 1.6s ease-out; }
+@keyframes tcin { 0% { opacity: 0; letter-spacing: 24px; } 40% { opacity: 1; } }
+
+/* ——— Реликвии в HUD ——— */
+.relics { position: absolute; left: 40px; top: 30px; display: flex; gap: 6px; flex-wrap: wrap; max-width: 420px; }
+.relics .r { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-family: 'Segoe UI Symbol', serif; font-size: 20px; background: rgba(14, 6, 10, .75); border: 1px solid var(--gold-dim); box-shadow: 0 0 0 1px #000; color: var(--bone); text-shadow: 0 0 8px rgba(220, 40, 50, .8); }
+.relics .r.cursed { border-color: #a01020; }
+.relics .r.rare { border-color: #8a6ab0; }
+.dnum.dot { color: #ff9a40; font-size: 17px; }
+.bossbar { position: absolute; left: 50%; top: 84px; transform: translateX(-50%); width: 640px; text-align: center; }
+.bossbar .bn { font-size: 26px; letter-spacing: 8px; color: var(--bone); text-shadow: 0 0 20px rgba(200, 20, 30, .9), 0 2px 6px #000; margin-bottom: 6px; }
+.bossbar .bb { position: relative; height: 12px; background: rgba(10, 2, 4, .8); border: 1px solid var(--gold-dim); box-shadow: 0 0 0 1px #000, 0 0 20px rgba(150, 10, 20, .5); }
+.bossbar .bl, .bossbar .bf { position: absolute; left: 0; top: 0; bottom: 0; }
+.bossbar .bl { background: #e8d0b0; opacity: .5; }
+.bossbar .bf { background: linear-gradient(180deg, #ff3a44, #8a0610); box-shadow: 0 0 10px rgba(255, 40, 50, .7); }
+.zoneinfo { position: absolute; left: 50%; top: 22px; transform: translateX(-50%); text-align: center; text-shadow: 0 2px 6px #000; }
+.zoneinfo .zn { font-size: 18px; letter-spacing: 4px; color: var(--bone); }
+.zoneinfo .zo { font-family: var(--font-text); font-style: italic; font-size: 17px; color: var(--bone-dim); }
+.zoneinfo .zm { font-family: var(--font-text); font-style: italic; font-size: 16px; color: var(--blood-bright); }

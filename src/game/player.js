@@ -52,6 +52,15 @@ export class Player {
 
   get eyePos() { return new V3(this.pos.x, this.pos.y + this.eye, this.pos.z); }
 
+  // Перенос в новую зону без сброса здоровья.
+  teleport(pos, yaw) {
+    this.pos.copy(pos);
+    this.vel.set(0, 0, 0);
+    this.yaw = yaw;
+    this.pitch = 0.06;
+    this.dashTime = 0;
+  }
+
   update(dt, input) {
     const game = this.game;
     this.dashCooldown -= dt;
@@ -84,11 +93,12 @@ export class Player {
     if (input.dash && this.dashCooldown <= 0) {
       if (wl > 0) this.dashDir.set(wx, 0, wz); else this.dashDir.set(-sy, 0, -cy);
       this.dashTime = 0.17;
-      this.dashCooldown = 1.0;
+      this.dashCooldown = 1.0 * (game.run?.stats.dashCd ?? 1);
       this.invuln = 0.3;
       this.fovKick.impulse(60);
       game.audio.dashWhoosh();
       game.hud?.dashUsed(1.0);
+      if (game.run?.stats.dashEmpower) game.run.empowered = true;
     }
     if (this.dashTime > 0) {
       this.dashTime -= dt;
@@ -149,6 +159,15 @@ export class Player {
     this.addTrauma(0.45 + amount / 60);
     game.audio.hurt();
     game.hud?.damage(amount, from ? this.angleTo(from) : null);
+    if (this.health <= 0 && game.run?.stats.lastPrayer > 0) {
+      // «Последняя молитва»: смерть откладывается.
+      game.run.stats.lastPrayer--;
+      this.health = 1;
+      this.invuln = 2;
+      game.hud?.banner('Последняя молитва', 'Не сегодня');
+      game.audio.bell();
+      game.post.grade.uHeal.value = 1;
+    }
     if (this.health <= 0) {
       this.health = 0;
       this.alive = false;

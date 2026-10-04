@@ -175,10 +175,15 @@ export class Crossbow {
       dir.x += randRange(-s, s); dir.y += randRange(-s, s); dir.z += randRange(-s, s);
       dir.normalize();
     }
-    game.projectiles.fireBolt(cam.position.clone().addScaledVector(dir, 0.3), dir, {
-      speed: 62, damage: this.damage * stats.damage, headMul: this.headMul * stats.headMul,
-      pierce: 2 + stats.pierce, knockback: 7, source: 'crossbow',
-    });
+    const shots = this.multishot || 1;
+    for (let i = 0; i < shots; i++) {
+      const d = dir.clone();
+      if (shots > 1) d.applyAxisAngle(cam.up, (i - (shots - 1) / 2) * 0.07).normalize();
+      game.projectiles.fireBolt(cam.position.clone().addScaledVector(d, 0.3), d, {
+        speed: 62, damage: this.damage * stats.damage, headMul: this.headMul * stats.headMul,
+        pierce: 2 + stats.pierce, knockback: 7, source: 'crossbow', holy: this.holy,
+      });
+    }
     this.state = 'reloading';
     this.stateT = 0;
   }

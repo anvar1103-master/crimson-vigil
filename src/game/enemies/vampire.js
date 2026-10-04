@@ -67,7 +67,11 @@ export class Vampire extends Enemy {
     this.eyeGlow = 1;
     this.hitThisAttack = false;
     this.xp = 12;
+    this.affix = null;
+    this.blinkCd = 0;
     this.build();
+    if (opts.boss) this.makeBoss(opts);
+    else if (opts.elite) this.makeElite();
     this.pos.copy(pos);
     this.facing = Math.atan2(game.player.pos.x - pos.x, game.player.pos.z - pos.z);
     this.root.rotation.y = this.facing;
@@ -168,12 +172,46 @@ export class Vampire extends Enemy {
     ];
   }
 
+  // Элита: крупнее, сильнее, с одним из аффиксов.
+  makeElite() {
+    const affixes = ['ancient', 'bloodthirsty', 'misty'];
+    this.affix = affixes[Math.floor(Math.random() * affixes.length)];
+    this.elite = true;
+    this.sizeScale = 1.16;
+    this.root.scale.setScalar(this.sizeScale);
+    this.radius *= this.sizeScale;
+    this.clawDamage *= 1.35;
+    this.lungeDamage *= 1.3;
+    this.xp = 30;
+    if (this.affix === 'ancient') { this.setRim(0.55, 0.32, 0.06); this.eyeBase = [6, 4.5, 0.6]; this.title = 'Древний'; }
+    if (this.affix === 'bloodthirsty') { this.setRim(0.75, 0.02, 0.04); this.eyeBase = [12, 0.3, 0.2]; this.speed *= 1.15; this.title = 'Кровожадный'; }
+    if (this.affix === 'misty') { this.setRim(0.3, 0.12, 0.6); this.eyeBase = [5, 2, 9]; this.title = 'Туманный'; }
+  }
+
+  // Временный босс: вампир-лорд втрое крупнее с ускоренными рывками.
+  makeBoss(opts) {
+    this.boss = opts.boss;
+    this.sizeScale = 1.55;
+    this.root.scale.setScalar(this.sizeScale);
+    this.radius *= this.sizeScale;
+    this.clawDamage = 24;
+    this.lungeDamage = 30;
+    this.lungeSpeed = 15;
+    this.xp = 200;
+    this.setRim(0.7, 0.05, 0.08);
+    this.eyeBase = [14, 1, 0.5];
+    this.affix = 'boss';
+  }
+
   update(dt) {
     const game = this.game, player = game.player;
     this.stateT += dt;
     this.attackCd -= dt;
     this.lungeCd -= dt;
+    this.blinkCd -= dt;
     this.updateFlash(dt);
+    this.tickStatus(dt);
+    if (this.boss && this.state === 'stalk') this.lungeCd -= dt * 0.6;
 
     const toP = _v.set(player.pos.x - this.pos.x, 0, player.pos.z - this.pos.z);
     const dist = toP.length();
@@ -199,7 +237,7 @@ export class Vampire extends Enemy {
         // Плетёт зигзаг, чтобы в него было труднее попасть.
         const weave = Math.sin(game.time * 1.4 + this.seed) * (dist > 4 ? 0.75 : 0.3);
         dir.applyAxisAngle(UP, weave);
-        want = playerAlive ? this.speed * (game.run?.stats.enemySpeed ?? 1) : -1;
+        want = playerAlive ? this.speed * (game.run?.stats.enemySpeed ?? 1) * this.speedFactor : -1;
         if (!playerAlive) { dir.negate(); want = 1.2; }
         const los = game.level.lineOfSight(this.pos, player.pos);
         if (playerAlive && dist < 2.1 && this.attackCd <= 0) this.setState('attack');
@@ -236,6 +274,7 @@ export class Vampire extends Enemy {
           if (player.damage(this.lungeDamage * (game.run?.stats.enemyDamage ?? 1), this.pos)) {
             player.vel.addScaledVector(this.lungeDir, 9);
             game.audio.clawSwipe(this.pos);
+            this.onDealtDamage(this.lungeDamage);
           }
           this.setState('recover');
         } else if (this.stateT > 0.5) this.setState('recover');
@@ -250,7 +289,7 @@ export class Vampire extends Enemy {
           game.audio.clawSwipe(this.pos);
           const fwd = Math.atan2(toP.x, toP.z);
           if (dist < 2.4 && Math.abs(angleDiff(this.facing, fwd)) < 1.2 && playerAlive) {
-            player.damage(this.clawDamage * (game.run?.stats.enemyDamage ?? 1), this.pos);
+            if (player.damage(this.clawDamage * (game.run?.stats.enemyDamage ?? 1), this.pos)) this.onDealtDamage(this.clawDamage);
             game.hud.clawMarks();
           }
         }
@@ -321,7 +360,8 @@ export class Vampire extends Enemy {
     this.head.rotation.y = damp(this.head.rotation.y, headYaw, 6, dt);
     this.head.rotation.x = damp(this.head.rotation.x, -this.lean * 0.6 + (this.state === 'windup' ? -0.3 : 0), 6, dt);
     const eg = this.eyeGlow * (this.dissolve > 0.5 ? 0 : 1);
-    this.eyeMat.color.setRGB(9 * eg, 0.6 * eg, 0.35 * eg);
+    const eb = this.eyeBase || [9, 0.6, 0.35];
+    this.eyeMat.color.setRGB(eb[0] * eg, eb[1] * eg, eb[2] * eg);
     for (const e of this.eyes) e.visible = this.dissolve < 0.55;
 
     this.animateArms(armPose, dt, t);
@@ -376,19 +416,51 @@ export class Vampire extends Enemy {
     pos.needsUpdate = true;
   }
 
+  onDealtDamage(amount) {
+    if (this.affix === 'bloodthirsty') {
+      this.hp = Math.min(this.maxHp, this.hp + amount * 2);
+      this.game.fx.blood(this.center(), new V3(0, 1, 0), 0.6);
+    }
+  }
+
   // Урон: возвращает true, если враг убит.
   takeDamage(amount, info = {}) {
     if (!this.alive) return false;
+    if (this.affix === 'ancient') amount *= 0.65;
+    if (this.boss && this.state === 'rise') amount *= 0.3;
     this.hp -= amount;
+    if (info.dot) {
+      if (this.hp <= 0) { this.die(info); return true; }
+      return false;
+    }
     this.flash = 1;
-    if (info.dir) this.knock.addScaledVector(_v.set(info.dir.x, 0, info.dir.z).normalize(), info.knockback ?? 2);
+    const kb = (info.knockback ?? 2) / (this.boss ? 4 : this.elite ? 1.6 : 1);
+    if (info.dir) this.knock.addScaledVector(_v.set(info.dir.x, 0, info.dir.z).normalize(), kb);
     if (this.hp <= 0) { this.die(info); return true; }
-    if (this.state !== 'rise' && (info.headshot || amount >= 30 || this.state === 'windup')) {
-      this.staggerTime = info.headshot ? 0.45 : 0.25;
+    if (this.affix === 'misty' && this.blinkCd <= 0 && this.state !== 'rise') { this.blink(); return false; }
+    const staggerAt = this.boss ? 90 : this.elite ? 50 : 30;
+    if (this.state !== 'rise' && (info.headshot || amount >= staggerAt || (this.state === 'windup' && !this.boss))) {
+      this.staggerTime = (info.headshot ? 0.45 : 0.25) * (this.boss ? 0.5 : 1);
       this.setState('stagger');
       this.game.audio.hiss(this.pos);
     }
     return false;
+  }
+
+  // Туманный: рассыпается облаком и возникает сбоку от охотника.
+  blink() {
+    const game = this.game, p = game.player;
+    this.blinkCd = 3.5;
+    game.fx.ash(this.center(), 1.2);
+    game.audio.materialize(this.pos);
+    const side = Math.random() < 0.5 ? 1 : -1;
+    const a = p.yaw + side * (Math.PI / 2 + Math.random() * 0.6);
+    const d = 5 + Math.random() * 3;
+    this.pos.set(p.pos.x - Math.sin(a) * d, 0, p.pos.z - Math.cos(a) * d);
+    game.level.resolveCircle(this.pos, this.radius, 0.5);
+    this.setState('rise');
+    this.stateT = 1.0;
+    this.setDissolve(0.6, new V3(2.5, 0.8, 4));
   }
 
   die() {
@@ -396,8 +468,8 @@ export class Vampire extends Enemy {
     this.setState('dying');
     this.setDissolve(0.02, new V3(7, 1.6, 0.35));
     this.game.audio.vampireDeath(this.pos);
-    this.game.fx.ash(this.center(), 2);
-    this.game.fx.flash(this.center(), { color: 0xff5020, intensity: 18, dur: 0.6, distance: 8 });
+    this.game.fx.ash(this.center(), this.boss ? 6 : 2);
+    this.game.fx.flash(this.center(), { color: 0xff5020, intensity: this.boss ? 60 : 18, dur: this.boss ? 1.5 : 0.6, distance: this.boss ? 20 : 8 });
   }
 }
 

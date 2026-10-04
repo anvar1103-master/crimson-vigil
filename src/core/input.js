@@ -54,6 +54,7 @@ export class Input {
   }
 
   lock() {
+    if (this.disabled) return;
     const p = this.el.requestPointerLock?.({ unadjustedMovement: true });
     if (p?.catch) p.catch(() => this.el.requestPointerLock());
   }
