@@ -156,7 +156,9 @@ export const SCENARIOS = {
         if (d < bd) { bd = d; best = e; }
       }
       if (!best) return inp;
-      const head = best.body.localToWorld(new V3(0, 1.45, 0));
+      if (i % 600 === 0) console.log('  targets:', g.enemies.list.filter((e) => e.alive).map((e) => `${e.type}@${e.pos.x.toFixed(1)},${e.pos.y.toFixed(1)},${e.pos.z.toFixed(1)}:${e.state}`).join(' '));
+      const hs = best.hitSpheres[best.type === 'bat' ? 0 : 1] || best.hitSpheres[0];
+      const head = hs.node.localToWorld(hs.local.clone());
       const eye = g.camera.position;
       const dx = head.x - eye.x, dy = head.y - eye.y, dz = head.z - eye.z;
       const wantYaw = Math.atan2(-dx, -dz), wantPitch = Math.atan2(dy, Math.hypot(dx, dz));
@@ -195,8 +197,17 @@ export const SCENARIOS = {
         inp.lookX = -Math.max(-0.15, Math.min(0.15, dy * 0.4));
         inp.lookY = (p.pitch - 0.0) * 0.2;
         inp.forward = Math.hypot(dx, dz) > stopDist && Math.abs(dy) < 1.2;
+        // Застрял об объект — шаг вбок.
+        const sp = Math.hypot(p.vel.x, p.vel.z);
+        g.botStuck = inp.forward && sp < 0.5 ? (g.botStuck || 0) + 1 : 0;
+        if (g.botStuck > 40 || g.botSide > 0) {
+          g.botSide = (g.botSide || 50) - 1;
+          inp.right = Math.floor(i / 300) % 2 === 0; inp.left = !inp.right;
+          if (g.botSide <= 0) { g.botSide = 0; g.botStuck = 0; }
+        }
         return Math.hypot(dx, dz);
       };
+      if (i % 900 === 0) console.log(`  pos ${p.pos.x.toFixed(1)},${p.pos.z.toFixed(1)} portals: ${g.zones.portals.map((pt) => `${pt.pos.x.toFixed(1)},${pt.pos.z.toFixed(1)}`).join(' ')}`);
       const alive = g.enemies.list.filter((e) => e.alive && e.state !== 'rise');
       if (alive.length) return SCENARIOS.bot.input(g, i);
       const item = g.zones.items.find((it) => it.active);
