@@ -212,7 +212,8 @@ const PORTAL_FRAG = /* glsl */`
     float sw = n( vec2( a * 3.0 + uTime * 0.8 - r * 9.0, r * 6.0 - uTime * 1.5 ) );
     float sw2 = n( vec2( a * 5.0 - uTime * 1.2 + r * 5.0, r * 12.0 ) );
     float core = smoothstep( 0.65, 0.0, r );
-    vec3 col = uColor * ( 0.4 + 1.6 * sw * sw2 ) * core + vec3( 1.0, 0.9, 0.8 ) * pow( core, 6.0 ) * 1.5;
+    float bands = smoothstep( 0.35, 0.75, sw * sw2 * 2.2 );
+    vec3 col = uColor * ( 0.15 + 1.1 * bands ) * core + vec3( 1.0, 0.85, 0.7 ) * pow( core, 9.0 ) * 0.6;
     gl_FragColor = vec4( col * uOpen, core * uOpen );
   }`;
 
@@ -233,7 +234,7 @@ export class Portal extends Interactable {
       this.group.add(base);
     }
     const col = new THREE.Color(def.color);
-    this.uniforms = { uTime: { value: 0 }, uColor: { value: col.clone().multiplyScalar(2.2) }, uOpen: { value: 0 } };
+    this.uniforms = { uTime: { value: 0 }, uColor: { value: col.clone().multiplyScalar(1.3) }, uOpen: { value: 0 } };
     const vortex = new THREE.Mesh(new THREE.ShapeGeometry(archShape(W - 0.05, S, 0.85)), new THREE.ShaderMaterial({
       uniforms: this.uniforms, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
       vertexShader: 'varying vec2 vUv; void main(){ vUv = vec2(position.x / 2.6 + 0.5, position.y / 4.4); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
@@ -241,10 +242,10 @@ export class Portal extends Interactable {
     }));
     this.group.add(vortex);
     this.sign = textSprite(def.glyph, { color: '#fff', glow: def.color, scale: 0.9, font: 'Segoe UI Symbol' });
-    this.sign.position.y = 5.0;
+    this.sign.position.y = 6.0;
     this.group.add(this.sign);
-    const label = textSprite(def.name + (choice.modifier ? ` · ${choice.modifierName}` : ''), { size: 64, color: '#f0e2cc', glow: '#000', scale: 0.42 });
-    label.position.y = 4.25;
+    const label = textSprite(def.name + (choice.modifier ? ` · ${choice.modifierName}` : ''), { size: 64, color: '#f0e2cc', glow: '#000', scale: 0.45 });
+    label.position.y = 5.1;
     this.group.add(label);
     this.addLight(col, 0, 10, 2);
     this.open = 0;
@@ -256,7 +257,7 @@ export class Portal extends Interactable {
     this.uniforms.uTime.value = this.t;
     this.uniforms.uOpen.value = this.open;
     this.light.intensity = 12 * this.open * (0.85 + 0.15 * Math.sin(this.t * 5));
-    this.sign.position.y = 5.0 + Math.sin(this.t * 1.5) * 0.1;
+    this.sign.position.y = 6.0 + Math.sin(this.t * 1.5) * 0.1;
     if (this.open > 0.5 && this.near(this.game.player.pos) && this.active) {
       this.active = false;
       this.onEnter?.(this.choice);

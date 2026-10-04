@@ -212,6 +212,84 @@ export function woodTex(seed = 3, dark = false) {
   });
 }
 
+// Фахверк: грязная штукатурка с тёмными балками (стойки, ригели, раскосы).
+export function timberWall(seed = 13) {
+  return cached(`timber${seed}`, () => {
+    const S = 512;
+    const n = tileNoise(S, { octaves: 6, freq: 8, seed });
+    const g = tileNoise(S, { octaves: 3, freq: 2, seed: seed + 1 });
+    const [c, ctx] = makeCanvas(S);
+    const img = ctx.createImageData(S, S);
+    for (let i = 0; i < S * S; i++) {
+      const l = (0.62 + 0.38 * n[i]) * (0.7 + 0.4 * g[i]);
+      const stain = smoothstep(0.55, 0.8, g[i]) * 0.35;
+      img.data[i * 4] = (178 - stain * 60) * l; img.data[i * 4 + 1] = (164 - stain * 70) * l; img.data[i * 4 + 2] = (140 - stain * 70) * l; img.data[i * 4 + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+    const beam = (x0, y0, x1, y1, w) => {
+      ctx.strokeStyle = '#2a1a10'; ctx.lineWidth = w; ctx.lineCap = 'square';
+      ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+      ctx.strokeStyle = 'rgba(70,45,28,0.6)'; ctx.lineWidth = w * 0.4;
+      ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+    };
+    for (const x of [0, 256, 512]) beam(x, 0, x, S, 26);
+    for (const x of [128, 384]) beam(x, 0, x, S, 18);
+    for (const y of [0, 512]) beam(0, y, S, y, 26);
+    beam(0, 256, S, 256, 20);
+    beam(0, 256, 128, 0, 16); beam(256, 256, 128, 0, 16); beam(256, 512, 384, 256, 16); beam(512, 512, 384, 256, 16);
+    const h = canvasFromPixels(S, new Uint8ClampedArray(S * S * 4).fill(160));
+    const hctx = h.getContext('2d');
+    hctx.drawImage(c, 0, 0);
+    return { map: tex(c), bump: tex(h, { color: false }) };
+  });
+}
+
+// Черепица/дранка для крыш.
+export function shingles(seed = 17) {
+  return cached(`shingle${seed}`, () => {
+    const S = 256, rng = mulberry32(seed);
+    const n = tileNoise(S, { octaves: 4, freq: 8, seed });
+    const [c, ctx] = makeCanvas(S);
+    ctx.fillStyle = '#141014'; ctx.fillRect(0, 0, S, S);
+    const rowH = 32;
+    for (let r = 0; r < S / rowH; r++) {
+      const off = (r % 2) * 16;
+      for (let x = -32; x < S + 32; x += 32) {
+        const l = 30 + rng() * 26;
+        ctx.fillStyle = `rgb(${l + 6},${l},${l + 4})`;
+        ctx.fillRect(x + off + 1, r * rowH + 1, 30, rowH - 3);
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(x + off + 1, r * rowH + rowH - 6, 30, 4);
+      }
+    }
+    const img = ctx.getImageData(0, 0, S, S);
+    for (let i = 0; i < S * S; i++) { const k = 0.7 + 0.5 * n[i]; img.data[i * 4] *= k; img.data[i * 4 + 1] *= k; img.data[i * 4 + 2] *= k; }
+    ctx.putImageData(img, 0, 0);
+    return tex(c);
+  });
+}
+
+// Доски (заборы, телеги, двери, гробы).
+export function planks(seed = 21) {
+  return cached(`planks${seed}`, () => {
+    const S = 256, rng = mulberry32(seed);
+    const n = tileNoise(S, { octaves: 5, freq: 4, seed });
+    const [c, ctx] = makeCanvas(S);
+    const img = ctx.createImageData(S, S);
+    const pw = 32;
+    for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+      const i = y * S + x, p = Math.floor(x / pw);
+      const grain = Math.sin(y * 0.15 + n[i] * 12 + p * 3) * 0.5 + 0.5;
+      const edge = Math.min(x % pw, pw - 1 - (x % pw)) < 1.5 ? 0.35 : 1;
+      const l = (0.55 + 0.45 * n[i]) * (0.8 + 0.2 * grain) * edge * (0.85 + ((p * 37) % 7) * 0.04);
+      img.data[i * 4] = 92 * l; img.data[i * 4 + 1] = 64 * l; img.data[i * 4 + 2] = 44 * l; img.data[i * 4 + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+    void rng;
+    return tex(c);
+  });
+}
+
 // Мягкое круглое свечение для бликов, искр и ореолов.
 export function glowTex() {
   return cached('glow', () => {

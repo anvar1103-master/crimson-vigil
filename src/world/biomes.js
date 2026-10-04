@@ -32,9 +32,10 @@ export const ATMOS = {
 const BUILDERS = {};
 export function registerBiome(id, fn) { BUILDERS[id] = fn; }
 
-export function buildBiomeLevel(scene, biomeId, seed) {
+// zone — описание зоны (для биомов с несколькими типами локаций).
+export function buildBiomeLevel(scene, biomeId, seed, zone = null) {
   const builder = BUILDERS[biomeId];
-  const level = builder ? builder(scene, seed) : buildCathedralYard(scene, seed);
+  const level = builder ? builder(scene, seed, zone) : buildCathedralYard(scene, seed);
   level.atmosphere = { ...(ATMOS[biomeId] || yardAtmosphere), ...(level.atmosphereOverride || {}) };
   return level;
 }

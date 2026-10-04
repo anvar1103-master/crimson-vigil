@@ -1,6 +1,7 @@
 // Сценарии для автоматических скриншотов: ?scenario=имя&steps=N.
 // Игра делает N шагов по 1/60 с с заскриптованным вводом и рендерит один кадр.
 import * as THREE from 'three';
+import { RELICS } from './relics.js';
 
 const V3 = THREE.Vector3;
 
@@ -206,6 +207,37 @@ export const SCENARIOS = {
       if (portal) steer(portal.pos, 0);
       // Собираем монеты по пути.
       return inp;
+    },
+  },
+
+  // Алтарь награды после зачистки.
+  reward: {
+    steps: 90,
+    setup(g) {
+      g.zones.enter({ kind: 'combat', reward: 'relic', biome: 0, index: 0 });
+      g.enemies.stop();
+      g.zones.onCleared();
+      g.player.teleport(new V3(0, 0, 3), 0);
+      g.player.pitch = -0.05;
+    },
+  },
+  // Врата выбора пути.
+  portals: {
+    steps: 150,
+    setup(g) {
+      g.run.depth = 1;
+      g.zones.enter({ kind: 'combat', reward: 'gold', biome: 0, index: 0 });
+      g.enemies.stop();
+      g.zones.spawnExits();
+      g.player.teleport(new V3(1, 0, -6), 0.12);
+      g.player.pitch = 0.12;
+    },
+  },
+  // Карточки реликвий.
+  cards: {
+    steps: 10,
+    setup(g) {
+      g.choiceUI.show({ title: 'Дар ночи', subtitle: 'Выберите одну реликвию', options: [RELICS[0], RELICS[5], RELICS[21]] });
     },
   },
 

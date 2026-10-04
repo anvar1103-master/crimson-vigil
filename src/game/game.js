@@ -8,6 +8,10 @@ import { Input, emptyInput } from '../core/input.js';
 import { AudioEngine } from '../core/audio.js';
 import { Weather } from '../core/weather.js';
 import { buildBiomeLevel } from '../world/biomes.js';
+import '../world/gen/village.js';
+import '../world/gen/forest.js';
+import '../world/gen/cathedral.js';
+import '../world/gen/castle.js';
 import { CoinShower } from '../world/interactables.js';
 import { Player } from './player.js';
 import { ViewModel } from './viewmodel.js';
@@ -102,15 +106,16 @@ export class Game {
     addEventListener('resize', () => this.onResize());
   }
 
-  loadLevel(biomeId, seed) {
+  loadLevel(biomeId, seed, zone = null) {
     if (this.level) this.level.dispose();
-    this.level = buildBiomeLevel(this.scene, biomeId, seed);
+    this.level = buildBiomeLevel(this.scene, biomeId, seed, zone);
     this.applyAtmosphere(this.level.atmosphere);
     if (this.weather) this.weather.set(this.level.atmosphere);
   }
 
   applyAtmosphere(a) {
     const scene = this.scene;
+    this.renderer.toneMappingExposure = a.exposure ?? 1.15;
     scene.fog = new THREE.FogExp2(a.fogColor, a.fogDensity);
     scene.background = new THREE.Color(a.fogColor);
     fogUniforms.fogMistColor.value.setRGB(...a.mistColor);
@@ -124,7 +129,8 @@ export class Game {
     if (this.lights) for (const l of this.lights) scene.remove(l);
     const moon = new THREE.DirectionalLight(a.moonLight, a.moonIntensity);
     moon.position.copy(a.moonDir).multiplyScalar(60);
-    moon.castShadow = true;
+    // В помещении «луна» — мягкий заполняющий свет без теней (иначе потолок гасит весь зал).
+    moon.castShadow = !a.indoor;
     moon.shadow.mapSize.set(2048, 2048);
     const sc = moon.shadow.camera;
     sc.left = -34; sc.right = 34; sc.top = 34; sc.bottom = -34; sc.near = 1; sc.far = 160;
@@ -180,7 +186,7 @@ export class Game {
     this.run = new Run();
     this.resetWorld();
     const first = { kind: 'combat', reward: 'relic', modifier: null, biome: 0, index: 0 };
-    this.loadLevel(BIOMES[0].id, this.run.seed);
+    this.loadLevel(BIOMES[0].id, this.run.seed, first);
     this.player.reset(this.level.playerStart, this.level.playerYaw);
     this.player.maxHealth = 100 + (this.meta.upgrades.vitality || 0) * 10;
     this.player.health = this.player.maxHealth;
@@ -215,7 +221,7 @@ export class Game {
       run.biome = choice.biome;
       run.zoneInBiome = choice.index;
       this.resetWorld();
-      this.loadLevel(BIOMES[choice.biome].id, run.seed + run.depth * 7919);
+      this.loadLevel(BIOMES[choice.biome].id, run.seed + run.depth * 7919, choice);
       this.player.teleport(this.level.playerStart, this.level.playerYaw);
       this.zones.enter(choice);
       if (!this.scenario) this.renderer.compile(this.scene, this.camera);
@@ -451,6 +457,12 @@ export class Game {
       this.fx.update(dtw);
       this.level.update(dtw, this.time);
       for (const p of this.level.embers || []) this.fx.embers(p, 1);
+      for (const p of this.level.smokers || []) {
+        if (rand() < 0.3) this.fx.smoke.spawn({
+          x: p.x + (rand() - 0.5), y: p.y, z: p.z + (rand() - 0.5), vx: 0.6, vy: 1.6 + rand(), vz: 0.3,
+          life: 4 + rand() * 2, size: 1.2, size1: 5, r: 0.06, g: 0.05, b: 0.05, a: 0.35, drag: 0.3, spin: (rand() - 0.5) * 0.4,
+        });
+      }
       this.applyAuras(dtw);
     }
     this.vm.root.visible = this.state !== 'menu';
