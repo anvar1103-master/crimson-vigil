@@ -10,6 +10,7 @@ import { buildCathedralYard } from '../world/cathedralYard.js';
 import { Player } from './player.js';
 import { ViewModel } from './viewmodel.js';
 import { Revolver } from './weapons/revolver.js';
+import { Crossbow, Projectiles } from './weapons/crossbow.js';
 import { FX } from './fx.js';
 import { Combat } from './combat.js';
 import { EnemyManager } from './enemies/director.js';
@@ -67,9 +68,13 @@ export class Game {
     this.combat = new Combat(this);
     this.enemies = new EnemyManager(this);
     this.hud = new HUD(this, uiRoot);
-    this.weapons = [new Revolver(this)];
+    this.projectiles = new Projectiles(this);
+    this.weapons = [new Revolver(this), new Crossbow(this)];
+    this.weaponIndex = 0;
     this.weapon = this.weapons[0];
     this.vm.root.add(this.weapon.model);
+    this.switchTarget = -1;
+    this.switchT = 0;
     this.player.reset(this.level.playerStart, this.level.playerYaw);
 
     this.hud.startBtn.addEventListener('click', () => this.startRun());
@@ -141,9 +146,10 @@ export class Game {
     this.audio.resume();
     this.enemies.clear();
     this.fx.clear();
+    this.projectiles.clear();
     this.run = new Run();
     this.player.reset(this.level.playerStart, this.level.playerYaw);
-    for (const w of this.weapons) { w.ammo = w.capacity; w.spent = 0; w.state = 'idle'; w.updateChambers?.(); }
+    for (const w of this.weapons) w.reset();
     this.state = 'playing';
     this.hud.show('hud');
     this.input.lock();
@@ -191,6 +197,29 @@ export class Game {
     const text = pickBark(key, this.lastBark);
     this.lastBark = text;
     setTimeout(() => this.hud.say(text), delay * 1000);
+  }
+
+  // Смена оружия: опустить текущее, подменить модель, поднять новое.
+  handleWeaponSwitch(dt, input) {
+    let want = -1;
+    if (input.weapon === 1 || input.weapon === 2) want = input.weapon - 1;
+    else if (input.weapon === 10 || input.weapon === -10) want = (this.weaponIndex + 1) % this.weapons.length;
+    if (want >= 0 && want !== this.weaponIndex && this.switchTarget < 0 && want < this.weapons.length) {
+      this.switchTarget = want;
+      this.switchT = 0;
+      this.audio.weaponSwap();
+    }
+    if (this.switchTarget >= 0) {
+      this.switchT += dt;
+      if (this.switchT > 0.2) {
+        this.vm.root.remove(this.weapon.model);
+        this.weaponIndex = this.switchTarget;
+        this.weapon = this.weapons[this.weaponIndex];
+        this.vm.root.add(this.weapon.model);
+        this.switchTarget = -1;
+        this.hud.lastAmmo = -1;
+      }
+    }
   }
 
   // ——— Цикл ———
@@ -248,10 +277,13 @@ export class Game {
     this.player.applyCamera(this.camera, this.time);
     this.camera.updateMatrixWorld();
     if (this.state !== 'paused') {
-      this.vm.lowered = damp(this.vm.lowered, playing && this.player.alive ? 0 : 1, 6, dt);
+      if (playing && this.player.alive) this.handleWeaponSwitch(dtw, input);
+      const down = !(playing && this.player.alive) || this.switchTarget >= 0;
+      this.vm.lowered = damp(this.vm.lowered, down ? 1 : 0, this.switchTarget >= 0 ? 18 : 9, dt);
       this.vm.update(dtw, this.camera, input);
-      if (playing && this.player.alive) this.weapon.update(dtw, input);
+      if (playing && this.player.alive && this.switchTarget < 0) this.weapon.update(dtw, input);
       else this.weapon.update(dtw, emptyInput());
+      this.projectiles.update(dtw);
       this.enemies.update(dtw);
       this.fx.update(dtw);
       this.level.update(dtw, this.time);

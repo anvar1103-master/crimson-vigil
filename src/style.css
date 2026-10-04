@@ -77,6 +77,10 @@ html, body {
 .ammo .cyl .axis { fill: #1a1416; stroke: var(--gold-dim); stroke-width: 2; }
 .ammo .cyl .ch { fill: #050304; stroke: #3a3034; stroke-width: 2; transition: fill .15s; }
 .ammo .cyl .ch.full { fill: #d8d4dc; stroke: #f4eee0; filter: drop-shadow(0 0 3px rgba(220, 220, 255, .7)); }
+.ammo .boltico { width: 120px; height: 30px; filter: drop-shadow(0 2px 6px #000); }
+.ammo .boltico path { fill: #2a2024; stroke: #4a3a3c; stroke-width: 1.5; transition: fill .2s; }
+.ammo .boltico.full .tip { fill: #e0dce4; stroke: #fff; }
+.ammo .boltico.full .fl { fill: #a3111c; }
 .ammo .count { font-size: 46px; font-weight: 700; line-height: 1; text-shadow: 0 2px 8px #000; }
 .ammo .count span { font-size: 22px; color: var(--bone-dim); }
 .ammo.empty .count b { color: var(--blood-bright); }

@@ -71,6 +71,29 @@ export const SCENARIOS = {
     },
   },
 
+  // Арбалет: выстрел колом по вампиру, кадр — кол в полёте.
+  crossbow: {
+    steps: 66,
+    setup(g) {
+      const e = g.enemies.spawn('stalker', ahead(g, 10));
+      tame(e);
+    },
+    input(g, i) {
+      if (i === 1) return { weapon: 2 };
+      if (i === 40) g.player.pitch = Math.atan2(1.3 - 1.62, 10);
+      return i === 62 ? { firePressed: true } : {};
+    },
+  },
+  crossbowhit: {
+    steps: 80,
+    setup(g) { const e = g.enemies.spawn('stalker', ahead(g, 10)); tame(e); },
+    input(g, i) {
+      if (i === 1) return { weapon: 2 };
+      if (i === 40) g.player.pitch = Math.atan2(1.3 - 1.62, 10);
+      return i === 62 ? { firePressed: true } : {};
+    },
+  },
+
   // Поза перезарядки крупно: ?pose=rx,ry,rz для подбора.
   reloadpose: {
     steps: 60,
@@ -109,6 +132,42 @@ export const SCENARIOS = {
       g.scene.background = new THREE.Color(0x3a3a40);
       g.hud.hud.style.display = 'none';
       g.gunlab = g.params.get('view') || 'side';
+      const wi = Number(g.params.get('weapon') || 0);
+      if (wi) { g.vm.root.remove(g.weapon.model); g.weaponIndex = wi; g.weapon = g.weapons[wi]; g.vm.root.add(g.weapon.model); }
+    },
+  },
+
+  // QA-бот: сам целится в ближайшего вампира, стреляет, перезаряжается и отступает.
+  // Прогоняет полный цикл волн и печатает итоги — ловит ошибки и дисбаланс.
+  bot: {
+    steps: 6000,
+    setup(g) { g.enemies.startWaves(); g.botLog = []; },
+    input(g, i) {
+      const p = g.player, inp = {};
+      if (i % 600 === 0) console.log(`BOT t=${(i / 60).toFixed(0)}s hp=${Math.round(p.health)} kills=${g.run.kills} wave=${g.run.wave} alive=${g.enemies.alive} ammo=${g.weapon.ammo}`);
+      if (!p.alive) return inp;
+      let best = null, bd = 1e9;
+      for (const e of g.enemies.list) {
+        if (!e.alive || e.state === 'rise') continue;
+        const d = e.pos.distanceTo(p.pos);
+        if (d < bd) { bd = d; best = e; }
+      }
+      if (!best) return inp;
+      const head = best.body.localToWorld(new V3(0, 1.45, 0));
+      const eye = g.camera.position;
+      const dx = head.x - eye.x, dy = head.y - eye.y, dz = head.z - eye.z;
+      const wantYaw = Math.atan2(-dx, -dz), wantPitch = Math.atan2(dy, Math.hypot(dx, dz));
+      let dyaw = wantYaw - p.yaw;
+      dyaw = Math.atan2(Math.sin(dyaw), Math.cos(dyaw));
+      inp.lookX = -Math.max(-0.12, Math.min(0.12, dyaw * 0.35));
+      inp.lookY = -Math.max(-0.08, Math.min(0.08, (wantPitch - p.pitch) * 0.35));
+      if (Math.abs(dyaw) < 0.04 && i % 4 === 0) inp.firePressed = true;
+      if (g.weapon.ammo === 0) inp.reload = true;
+      inp.back = bd < 6;
+      inp.left = Math.floor(i / 90) % 2 === 0;
+      inp.right = !inp.left;
+      if (best.state === 'windup' && i % 30 === 0) inp.dash = true;
+      return inp;
     },
   },
 

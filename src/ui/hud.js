@@ -39,10 +39,13 @@ export class HUD {
 
     this.ammo = h('div', 'ammo', `
       <div class="wname">Реквием</div>
-      <div class="row"><svg class="cyl" viewBox="-50 -50 100 100"></svg><div class="count"><b>6</b><span>/6</span></div></div>
+      <div class="row"><svg class="cyl" viewBox="-50 -50 100 100"></svg>
+        <svg class="boltico hidden" viewBox="0 0 120 30"><path d="M4 15 L22 6 L22 12 L100 12 L100 18 L22 18 L22 24 Z" class="tip"/><path d="M96 9 L116 4 L110 15 L116 26 L96 21 Z" class="fl"/></svg>
+        <div class="count"><b>6</b><span>/6</span></div></div>
       <div class="hint">R — перезарядка</div>`);
     this.hud.append(this.ammo);
     this.cyl = this.ammo.querySelector('.cyl');
+    this.boltIco = this.ammo.querySelector('.boltico');
     this.ammoNum = this.ammo.querySelector('.count b');
     this.ammoCap = this.ammo.querySelector('.count span');
     this.ammoHint = this.ammo.querySelector('.hint');
@@ -223,6 +226,10 @@ export class HUD {
           c.classList.toggle('full', i < ammo);
         });
         this.ammo.classList.toggle('empty', ammo === 0);
+        const xb = w.kind === 'crossbow';
+        this.cyl.classList.toggle('hidden', xb);
+        this.boltIco.classList.toggle('hidden', !xb);
+        this.boltIco.classList.toggle('full', ammo > 0);
       }
       this.cyl.style.transform = `rotate(${(w.drumAngle ?? 0) * (180 / Math.PI)}deg)`;
       this.ammoHint.textContent = w.reloading ? 'перезарядка…' : ammo === 0 ? 'R — перезарядка' : '';

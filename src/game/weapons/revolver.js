@@ -217,6 +217,15 @@ export class Revolver {
 
   get reloading() { return this.state !== 'idle'; }
 
+  reset() {
+    this.capacity = 6 + (this.game.run?.stats.extraRounds || 0);
+    this.ammo = this.capacity;
+    this.spent = 0;
+    this.state = 'idle';
+    this.cooldown = 0;
+    this.updateChambers();
+  }
+
   updateChambers() {
     // Каморы с патронами: ammo штук начиная с текущей позиции у ствола.
     const cur = Math.round(this.drumTarget / (Math.PI / 3));
