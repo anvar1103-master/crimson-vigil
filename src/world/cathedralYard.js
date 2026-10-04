@@ -21,7 +21,8 @@ export const yardAtmosphere = {
   hemiSky: 0x6a3040,
   hemiGround: 0x0c0607,
   hemiIntensity: 0.55,
-  rain: 0,
+  rain: 0.6,
+  lightning: true,
 };
 
 export function buildCathedralYard(scene) {

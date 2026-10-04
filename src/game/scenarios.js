@@ -14,6 +14,8 @@ function tame(e) { e.speed = 0; e.lungeCd = 1e9; e.attackCd = 1e9; }
 export const SCENARIOS = {
   // Общий вид локации со стартовой точки.
   overview: { steps: 20 },
+  // Молния (кадр на пике вспышки).
+  lightning: { steps: 14, setup(g) { g.weather.strike(); } },
 
   // Вампир крупным планом (модель, свет, глаза).
   vampire: {

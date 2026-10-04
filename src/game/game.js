@@ -6,6 +6,7 @@ import { fogUniforms } from '../core/fog.js';
 import { seedRandom, damp } from '../core/util.js';
 import { Input, emptyInput } from '../core/input.js';
 import { AudioEngine } from '../core/audio.js';
+import { Weather } from '../core/weather.js';
 import { buildCathedralYard } from '../world/cathedralYard.js';
 import { Player } from './player.js';
 import { ViewModel } from './viewmodel.js';
@@ -61,6 +62,8 @@ export class Game {
 
     this.post = createPost(renderer, this.scene, this.camera, this.vmScene, this.vmCamera);
     this.loadLevel();
+    this.weather = new Weather(this);
+    this.weather.set(this.level.atmosphere);
     this.run = new Run();
     this.player = new Player(this);
     this.vm = new ViewModel(this);
@@ -285,6 +288,7 @@ export class Game {
       else this.weapon.update(dtw, emptyInput());
       this.projectiles.update(dtw);
       this.enemies.update(dtw);
+      this.weather.update(dtw);
       this.fx.update(dtw);
       this.level.update(dtw, this.time);
       for (const p of this.level.embers || []) this.fx.embers(p, 1);
