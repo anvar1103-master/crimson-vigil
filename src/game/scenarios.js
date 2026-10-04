@@ -186,6 +186,8 @@ export const SCENARIOS = {
       if (g.params.has('god')) g.run.stats.damage = 4;
       const ev = g.params.get('event');
       if (ev) { g.run.gold = 200; g.transitionTo({ kind: 'event', reward: ev, biome: 0, index: 1 }); }
+      const sb = g.params.get('startbiome');
+      if (sb) g.transitionTo({ kind: 'combat', reward: 'relic', biome: Number(sb), index: 0 });
     },
     input(g, i) {
       const p = g.player, inp = {};
@@ -219,8 +221,13 @@ export const SCENARIOS = {
         if (d < 1.8 && i % 20 === 0) { inp.interact = true; g.botUsed.add(item); }
         return inp;
       }
-      const portal = g.zones.portals.find((pt) => pt.active && pt.open > 0.6);
-      if (portal) steer(portal.pos, 0);
+      // Если к одним вратам не пройти за 6 с — пробуем другие.
+      const ports = g.zones.portals.filter((pt) => pt.active && pt.open > 0.6);
+      if (ports.length) {
+        g.botExitT = (g.botExitT || 0) + 1;
+        if (g.botExitT > 360) { g.botExitT = 0; g.botPortal = (g.botPortal || 0) + 1; }
+        steer(ports[(g.botPortal || 0) % ports.length].pos, 0);
+      } else g.botExitT = 0;
       // Собираем монеты по пути.
       return inp;
     },

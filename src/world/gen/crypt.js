@@ -94,9 +94,9 @@ export function buildCrypt(scene, seed = 1) {
   L.rewardPoint = new V3(0, 0, 4);
   L.bossPoint = new V3(0, 0, -11);
   L.exitPoints = [
-    { pos: new V3(0, 0, -17.6), yaw: 0 },
-    { pos: new V3(-15.8, 0, -16.3), yaw: 0 },
-    { pos: new V3(15.8, 0, -16.3), yaw: 0 },
+    { pos: new V3(0, 0, -12.2), yaw: 0 },
+    { pos: new V3(-15.6, 0, -3.25), yaw: Math.PI / 2 },
+    { pos: new V3(15.6, 0, -3.25), yaw: Math.PI / 2 },
   ];
   L.spawnPoints = [
     new V3(0, 0, -12), new V3(-14.5, 0, -16), new V3(14.5, 0, -16), new V3(-14.5, 0, 16), new V3(14.5, 0, 16),
