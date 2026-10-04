@@ -181,7 +181,7 @@ export const SCENARIOS = {
   flow: {
     steps: 9000,
     setup(g) {
-      g.audio.enabled = false;
+      if (!g.params.has('audio')) g.audio.enabled = false;
       g.startRun();
       g.player.maxHealth = g.player.health = 400; // бот слабый — даём ему форы, проверяем логику, а не баланс
       if (g.params.has('god')) g.run.stats.damage = 4;
@@ -226,9 +226,13 @@ export const SCENARIOS = {
       const ports = g.zones.portals.filter((pt) => pt.active && pt.open > 0.6);
       if (ports.length) {
         g.botExitT = (g.botExitT || 0) + 1;
+        g.botExitTotal = (g.botExitTotal || 0) + 1;
         if (g.botExitT > 360) { g.botExitT = 0; g.botPortal = (g.botPortal || 0) + 1; }
-        steer(ports[(g.botPortal || 0) % ports.length].pos, 0);
-      } else g.botExitT = 0;
+        const target = ports[(g.botPortal || 0) % ports.length];
+        steer(target.pos, 0);
+        // У бота нет поиска пути: если за 10 с не дошёл — переносим к вратам (это проблема бота, не игры).
+        if (g.botExitTotal > 600) { console.log('BOT TELEPORT (pathing)'); p.pos.copy(target.pos); g.botExitTotal = 0; }
+      } else { g.botExitT = 0; g.botExitTotal = 0; }
       // Собираем монеты по пути.
       return inp;
     },

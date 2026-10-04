@@ -77,7 +77,7 @@ export class Game {
     this.heartbeat = 0;
 
     this.audio = new AudioEngine();
-    if (this.scenario) this.audio.enabled = false;
+    if (this.scenario && !this.params.has('audio')) this.audio.enabled = false;
     this.input = new Input(renderer.domElement);
     this.input.disabled = !!this.scenario;
     this.input.onLockChange = (locked) => this.onLockChange(locked);
