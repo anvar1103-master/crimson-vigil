@@ -115,7 +115,8 @@ export class Weather {
 
   update(dt) {
     const game = this.game, cam = game.camera;
-    this.uniforms.uTime.value = game.time;
+    // Время для струй держим в малом диапазоне: на больших значениях дождь пропадал (точность на GPU).
+    this.uniforms.uTime.value = game.time % 3;
     this.uniforms.uCam.value.copy(cam.position);
     if (this.rain > 0) {
       // Брызги на земле вокруг охотника.

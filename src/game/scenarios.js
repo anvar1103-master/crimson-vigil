@@ -14,7 +14,18 @@ function tame(e) { e.speed = 0; e.lungeCd = 1e9; e.attackCd = 1e9; }
 
 export const SCENARIOS = {
   // Общий вид локации со стартовой точки.
-  overview: { steps: 20 },
+  overview: {
+    steps: 20,
+    input(g, i) {
+      if (g.params.has('nosmoke')) g.level.smokers = [];
+      if (g.params.has('raintime')) g.time = Number(g.params.get('raintime'));
+      if (g.params.has('debugrain') && i % 20 === 0) {
+        const u = g.weather.uniforms;
+        console.log('RAINDBG', i, 't', u.uTime.value.toFixed(2), 'cam', u.uCam.value.toArray().map((v) => v.toFixed(1)).join(','), 'sparks', g.fx.sparks.count, 'smoke', g.fx.smoke.count, 'vis', g.weather.lines.visible, 'flash', g.weather.flashSeq.length);
+      }
+      return {};
+    },
+  },
   // Молния (кадр на пике вспышки).
   lightning: { steps: 14, setup(g) { g.weather.strike(); } },
 
@@ -285,6 +296,16 @@ export const SCENARIOS = {
       const types = ['thrall', 'stalker', 'witch', 'brute', 'bat'];
       types.forEach((t, i) => g.enemies.spawn(t, ahead(g, 6 + (t === 'brute' ? 2 : 0), (i - 2) * 1.9)));
       for (const e of g.enemies.list) { e.speed = 0; e.lungeCd = 1e9; e.attackCd = 1e9; e.chargeCd = 1e9; e.castCd = 1e9; e.diveCd = 1e9; }
+    },
+  },
+
+  // Первые секунды забега глазами игрока.
+  firstlook: {
+    steps: 260,
+    setup(g) { g.startRun(); g.meta.runs = 0; },
+    input(g, i) {
+      if (i === 250) console.log('RAIN', g.weather.lines.visible, g.weather.rain, g.weather.uniforms.uOpacity.value, g.level.atmosphere.rain, g.weather.lines.parent === g.scene);
+      return i > 200 && i < 230 ? { forward: true } : {};
     },
   },
 
