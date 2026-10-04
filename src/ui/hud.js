@@ -70,6 +70,8 @@ export class HUD {
     this.hud.append(this.bark);
     this.prompt = h('div', 'prompt');
     this.hud.append(this.prompt);
+    this.hintEl = h('div', 'hint');
+    this.hud.append(this.hintEl);
     this.relicsEl = h('div', 'relics');
     this.hud.append(this.relicsEl);
     this.zoneEl = h('div', 'zoneinfo', '<div class="zn"></div><div class="zo"></div><div class="zm"></div>');
@@ -87,6 +89,7 @@ export class HUD {
       <div class="lore">Сорок ночей Багровая Луна не заходит над провинцией Варн.<br>Последний охотник Ордена идёт туда, откуда не возвращаются.</div>
       <button class="start">Начать охоту</button>
       <button class="order small">Святилище Ордена</button>
+      <button class="opts small">Настройки</button>
       <div class="controls">
         <span><b>WASD</b> движение</span><span><b>Мышь</b> прицел</span><span><b>ЛКМ</b> огонь</span><span><b>ПКМ</b> прицеливание</span>
         <span><b>R</b> перезарядка</span><span><b>Shift</b> бег</span><span><b>Q</b> рывок</span><span><b>Space</b> прыжок</span>
@@ -95,16 +98,21 @@ export class HUD {
     root.append(this.menu);
     this.startBtn = this.menu.querySelector('.start');
     this.orderBtn = this.menu.querySelector('.order');
+    this.settingsBtn = this.menu.querySelector('.opts');
 
-    this.pause = h('div', 'screen pause hidden', '<h2>Пауза</h2><div class="hint">Щёлкните, чтобы вернуться в ночь</div>');
+    this.pause = h('div', 'screen pause hidden', `<h2>Пауза</h2><div class="hint">Ночь подождёт. Недолго.</div>
+      <div class="btns"><button class="resume">Вернуться в ночь</button><button class="opts small">Настройки</button><button class="quit small">Покинуть забег</button></div>`);
     root.append(this.pause);
 
     this.death = h('div', 'screen death hidden', `
       <h2>Вы пали</h2>
       <div class="epitaph"></div>
       <div class="stats"></div>
-      <button class="again">Восстать снова</button>`);
+      <button class="again">Восстать снова</button>
+      <button class="tomenu small">В главное меню</button>`);
     root.append(this.death);
+    this.fpsEl = h('div', 'fps hidden');
+    root.append(this.fpsEl);
 
     this.hpShown = 100;
     this.hpLag = 100;
@@ -144,6 +152,32 @@ export class HUD {
     this.hitT = 0;
     this.hit.className = 'hitmarker show' + (head ? ' head' : '') + (kill ? ' kill' : '');
     void this.hit.offsetWidth;
+  }
+
+  // Обучающие подсказки по очереди.
+  hints(list) {
+    clearTimeout(this.hintTimer);
+    let i = 0;
+    const next = () => {
+      if (i >= list.length) { this.hintEl.classList.remove('show'); return; }
+      this.hintEl.innerHTML = list[i++];
+      this.hintEl.classList.remove('show');
+      void this.hintEl.offsetWidth;
+      this.hintEl.classList.add('show');
+      this.hintTimer = setTimeout(next, 5200);
+    };
+    next();
+  }
+
+  setFps(on) { this.fpsEl.classList.toggle('hidden', !on); }
+
+  tickFps(dt, pr) {
+    this.fpsAcc = (this.fpsAcc || 0) + dt;
+    this.fpsN = (this.fpsN || 0) + 1;
+    if (this.fpsAcc > 0.5) {
+      this.fpsEl.textContent = `${Math.round(this.fpsN / this.fpsAcc)} FPS · ×${pr.toFixed(2)}`;
+      this.fpsAcc = 0; this.fpsN = 0;
+    }
   }
 
   setZone(name, sub, mod) {

@@ -80,7 +80,7 @@ export class Input {
     else if (pr.has('Digit2')) s.weapon = 2;
     else if (this.wheel) s.weapon = this.wheel > 0 ? 10 : -10;
     s.lookX = this.dx * this.sensitivity;
-    s.lookY = this.dy * this.sensitivity;
+    s.lookY = this.dy * this.sensitivity * (this.invertY ? -1 : 1);
     s.keysPressed = new Set(pr);
     this.dx = this.dy = this.wheel = 0;
     pr.clear();

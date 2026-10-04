@@ -59,15 +59,16 @@ const GradeShader = {
     }`,
 };
 
-export function createPost(renderer, scene, camera, vmScene, vmCamera) {
+export function createPost(renderer, scene, camera, vmScene, vmCamera, { samples = 4, bloom: useBloom = true } = {}) {
   const size = renderer.getSize(new THREE.Vector2());
-  const target = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples: 4 });
+  const target = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples });
   const composer = new EffectComposer(renderer, target);
   const worldPass = new RenderPass(scene, camera);
   const vmPass = new RenderPass(vmScene, vmCamera);
   vmPass.clear = false;
   vmPass.clearDepth = true;
   const bloom = new UnrealBloomPass(new THREE.Vector2(size.x, size.y), 0.42, 0.38, 0.95);
+  bloom.enabled = useBloom;
   const output = new OutputPass();
   const grade = new ShaderPass(GradeShader);
   composer.addPass(worldPass);

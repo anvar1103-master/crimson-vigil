@@ -15,7 +15,7 @@ export class AudioEngine {
     if (!AC) return;
     const ctx = (this.ctx = new AC());
     this.master = ctx.createGain();
-    this.master.gain.value = 0.85;
+    this.master.gain.value = this.volume ?? 0.85;
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -16; comp.knee.value = 12; comp.ratio.value = 5;
     comp.attack.value = 0.003; comp.release.value = 0.25;

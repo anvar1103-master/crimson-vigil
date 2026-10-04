@@ -125,6 +125,10 @@ html, body {
 @keyframes bark { 0% { opacity: 0; transform: translate(-50%, 8px); } 8% { opacity: 1; transform: translate(-50%, 0); } 85% { opacity: 1; } 100% { opacity: 0; } }
 .prompt { position: absolute; left: 50%; top: 60%; transform: translateX(-50%); font-size: 22px; letter-spacing: 2px; opacity: 0; transition: opacity .2s; text-shadow: 0 2px 6px #000; }
 .prompt.show { opacity: 1; }
+.hud .hint { position: absolute; left: 50%; bottom: 180px; transform: translateX(-50%); padding: 10px 26px; background: rgba(10, 4, 6, .7); border: 1px solid var(--gold-dim); font-family: var(--font-text); font-size: 20px; color: var(--bone); opacity: 0; white-space: nowrap; }
+.hud .hint b { font-family: var(--font-ui); color: var(--gold); margin: 0 4px; }
+.hud .hint.show { animation: hint 5.2s ease forwards; }
+@keyframes hint { 0% { opacity: 0; transform: translate(-50%, 10px); } 8% { opacity: 1; transform: translate(-50%, 0); } 88% { opacity: 1; } 100% { opacity: 0; } }
 
 /* ——— Экраны ——— */
 .screen { position: absolute; inset: 0; pointer-events: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
@@ -164,6 +168,21 @@ button.small { font-size: 18px; padding: 9px 34px; margin-top: 14px; letter-spac
 .death.victory h2 { color: #ffd890; text-shadow: 0 0 40px rgba(255, 180, 80, .8), 0 4px 12px #000; }
 .metainfo { display: flex; gap: 26px; margin-top: 22px; font-family: var(--font-text); font-size: 18px; color: var(--bone-dim); }
 .metainfo span:first-child { color: var(--blood-bright); }
+
+/* ——— Настройки и пауза ——— */
+.settings { background: rgba(5, 0, 3, .88); z-index: 3; }
+.settings h2 { font-family: var(--font-ui); font-size: 56px; letter-spacing: 12px; margin: 0 0 26px; text-shadow: 0 0 30px rgba(190, 20, 30, .8); }
+.settings .rows { display: flex; flex-direction: column; gap: 18px; width: 520px; text-align: left; }
+.settings label { display: flex; flex-direction: column; gap: 6px; font-size: 20px; letter-spacing: 2px; position: relative; }
+.settings label .v { position: absolute; right: 0; top: 0; color: var(--gold); font-family: var(--font-text); }
+.settings label.chk { flex-direction: row; align-items: center; gap: 12px; }
+.settings input[type=range] { width: 100%; accent-color: #b0202c; pointer-events: auto; }
+.settings select { font-family: var(--font-text); font-size: 18px; background: #1a0c10; color: var(--bone); border: 1px solid var(--gold-dim); padding: 6px; pointer-events: auto; }
+.settings input[type=checkbox] { width: 20px; height: 20px; accent-color: #b0202c; pointer-events: auto; }
+.settings .note { font-family: var(--font-text); font-style: italic; color: var(--bone-dim); margin: 22px 0 18px; font-size: 17px; }
+.pause .btns { display: flex; flex-direction: column; gap: 12px; margin-top: 28px; align-items: center; }
+.pause .btns button { min-width: 320px; font-size: 22px; padding: 12px 40px; }
+.fps { position: absolute; left: 10px; bottom: 6px; font: 13px monospace; color: #c8b8a8; text-shadow: 0 1px 2px #000; }
 
 /* ——— Выбор наград ——— */
 .choice { background: radial-gradient(ellipse at center, rgba(30, 0, 6, .55), rgba(5, 0, 2, .9)); animation: fadein .3s ease-out; }

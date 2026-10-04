@@ -28,6 +28,7 @@ import { ChoiceUI, Transition } from '../ui/choice.js';
 import { pickBark } from './barks.js';
 import { SCENARIOS } from './scenarios.js';
 import { loadMeta, saveMeta, META_UPGRADES } from './meta.js';
+import { loadSettings, SettingsUI, QUALITY } from '../ui/settings.js';
 import { rollRelics } from './relics.js';
 
 export class Game {
@@ -37,18 +38,21 @@ export class Game {
     this.scenarioName = this.params.get('scenario');
     this.scenario = this.scenarioName ? SCENARIOS[this.scenarioName] || {} : null;
     if (this.scenario) seedRandom(Number(this.params.get('seed') || 1));
-    this.settings = { fov: 68, showHands: false, sensitivity: 1 };
+    this.settings = loadSettings();
+    if (this.scenario) this.settings = { ...this.settings, fov: 68, quality: 'high', sensitivity: 1 };
+    this.quality = QUALITY[this.settings.quality] || QUALITY.high;
+    this.pixelRatio = Math.min(devicePixelRatio, this.quality.maxPixelRatio);
     this.meta = loadMeta();
 
     const renderer = (this.renderer = new THREE.WebGLRenderer({
       antialias: false, powerPreference: 'high-performance',
       preserveDrawingBuffer: !!this.scenario,
     }));
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+    renderer.setPixelRatio(this.pixelRatio);
     renderer.setSize(innerWidth, innerHeight);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.15;
-    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.enabled = this.quality.shadows > 0;
     renderer.shadowMap.type = THREE.PCFShadowMap;
     container.appendChild(renderer.domElement);
 
@@ -71,8 +75,12 @@ export class Game {
     this.input = new Input(renderer.domElement);
     this.input.disabled = !!this.scenario;
     this.input.onLockChange = (locked) => this.onLockChange(locked);
+    // Если захват мыши сорвался (например, после экрана выбора), клик по экрану вернёт его.
+    renderer.domElement.addEventListener('click', () => {
+      if (this.state === 'playing' && !this.input.locked) this.input.lock();
+    });
 
-    this.post = createPost(renderer, this.scene, this.camera, this.vmScene, this.vmCamera);
+    this.post = createPost(renderer, this.scene, this.camera, this.vmScene, this.vmCamera, { samples: this.quality.samples, bloom: this.quality.bloom });
     this.run = new Run();
     this.loadLevel(this.params.get('biome') || 'cathedral', 7);
     this.weather = new Weather(this);
@@ -99,10 +107,16 @@ export class Game {
     this.hud.setMeta(this.meta);
 
     this.chooseCount = 0;
+    this.settingsUI = new SettingsUI(uiRoot, this);
     this.hud.startBtn.addEventListener('click', () => this.startRun());
     this.hud.orderBtn.addEventListener('click', () => this.openOrder());
-    this.hud.pause.addEventListener('click', () => this.input.lock());
+    this.hud.settingsBtn.addEventListener('click', () => { this.hud.menu.classList.add('hidden'); this.settingsUI.open(() => this.hud.menu.classList.remove('hidden')); });
+    this.hud.pause.querySelector('.resume').addEventListener('click', () => this.input.lock());
+    this.hud.pause.querySelector('.opts').addEventListener('click', () => this.settingsUI.open());
+    this.hud.pause.querySelector('.quit').addEventListener('click', () => this.quitToMenu());
     this.hud.death.querySelector('.again').addEventListener('click', () => this.startRun());
+    this.hud.death.querySelector('.tomenu').addEventListener('click', () => this.quitToMenu(true));
+    this.applySettings();
 
     this.onResize();
     addEventListener('resize', () => this.onResize());
@@ -132,8 +146,8 @@ export class Game {
     const moon = new THREE.DirectionalLight(a.moonLight, a.moonIntensity);
     moon.position.copy(a.moonDir).multiplyScalar(60);
     // В помещении «луна» — мягкий заполняющий свет без теней (иначе потолок гасит весь зал).
-    moon.castShadow = !a.indoor;
-    moon.shadow.mapSize.set(2048, 2048);
+    moon.castShadow = !a.indoor && this.quality.shadows > 0;
+    moon.shadow.mapSize.set(this.quality.shadows || 512, this.quality.shadows || 512);
     const sc = moon.shadow.camera;
     sc.left = -34; sc.right = 34; sc.top = 34; sc.bottom = -34; sc.near = 1; sc.far = 160;
     moon.shadow.bias = -0.0004;
@@ -159,9 +173,33 @@ export class Game {
     }
   }
 
+  // Применить настройки «на лету». Смена качества пересоздаёт страницу (буферы рендера).
+  applySettings(qualityChanged = false) {
+    const s = this.settings;
+    this.input.sensitivity = 0.0022 * s.sensitivity;
+    this.input.invertY = s.invertY;
+    if (this.audio.master) this.audio.master.gain.value = s.volume;
+    this.audio.volume = s.volume;
+    this.hud?.setFps(s.showFps);
+    if (qualityChanged) setTimeout(() => location.reload(), 200);
+  }
+
+  // Динамическое разрешение: держим кадр около 60 FPS на неизвестном железе.
+  adaptResolution(dt) {
+    this.frameAvg = this.frameAvg ? this.frameAvg * 0.95 + dt * 0.05 : dt;
+    this.resT = (this.resT || 0) + dt;
+    if (this.resT < 2) return;
+    const max = Math.min(devicePixelRatio, this.quality.maxPixelRatio);
+    let pr = this.pixelRatio;
+    if (this.frameAvg > 1 / 45 && pr > 0.6) pr = Math.max(0.6, pr - 0.1);
+    else if (this.frameAvg < 1 / 70 && pr < max) pr = Math.min(max, pr + 0.05);
+    if (pr !== this.pixelRatio) { this.pixelRatio = pr; this.onResize(); }
+    this.resT = 0;
+  }
+
   onResize() {
     const w = innerWidth, h = innerHeight;
-    const pr = Math.min(devicePixelRatio, 1.5);
+    const pr = this.pixelRatio;
     this.renderer.setPixelRatio(pr);
     this.renderer.setSize(w, h);
     this.camera.aspect = this.vmCamera.aspect = w / h;
@@ -210,6 +248,14 @@ export class Game {
     if (up.arsenal) this.addRelic(rollRelics(this.run, 1)[0]);
     this.zones.enter(first);
     this.say('start', 0.6);
+    if (this.meta.runs < 2) {
+      setTimeout(() => this.hud.hints([
+        '<b>ЛКМ</b> выстрел · <b>ПКМ</b> прицеливание · <b>R</b> перезарядка',
+        '<b>1</b> / <b>2</b> или колесо — револьвер и арбалет',
+        '<b>Q</b> рывок-уклонение · <b>Shift</b> бег · <b>Space</b> прыжок через ударные волны',
+        '<b>E</b> — алтари, торговец и дары · выстрел в голову наносит больше урона',
+      ]), 3500);
+    }
     setTimeout(() => this.audio.bell(), 300);
   }
 
@@ -245,6 +291,13 @@ export class Game {
     this.state = 'choice';
     this.input.unlock();
     this.hud.setPrompt('');
+    if (this.params.has('autobot')) {
+      setTimeout(() => {
+        if (opts.closable && this.chooseCount++ > 0) this.choiceUI.finish(null);
+        else this.choiceUI.pick(Math.max(0, opts.options.findIndex((o) => !o.disabled)));
+        console.log('AUTOBOT choice', opts.title);
+      }, 400);
+    }
     const r = await this.choiceUI.show(opts);
     if (this.state === 'choice') this.state = prev === 'choice' ? 'playing' : prev;
     this.input.lock();
@@ -266,6 +319,18 @@ export class Game {
     u.apply(this);
     this.hud.banner(u.name, u.desc);
     this.audio.chestOpen();
+  }
+
+  // Выход в главное меню (из паузы — с зачётом осколков за пройденное).
+  quitToMenu(afterEnd = false) {
+    if (!afterEnd && (this.state === 'paused' || this.state === 'playing')) this.endRun(false);
+    this.resetWorld();
+    this.state = 'menu';
+    this.loadLevel('cathedral', 7);
+    this.player.reset(this.level.playerStart, this.level.playerYaw);
+    this.hud.show('menu');
+    this.hud.setMeta(this.meta);
+    this.input.unlock();
   }
 
   // Святилище Ордена: трата кровавых осколков на постоянные улучшения.
@@ -391,12 +456,23 @@ export class Game {
     if (this.scenario) return this.runScenario();
     let last = performance.now();
     this.hud.show('menu');
+    // Автобот: проверка настоящего игрового цикла (таймеры, переходы, экраны выбора).
+    const autobot = this.params.has('autobot');
+    let botFrame = 0;
+    if (autobot) {
+      this.input.disabled = true;
+      this.audio.enabled = false;
+      setTimeout(() => { this.startRun(); this.player.maxHealth = this.player.health = 400; }, 500);
+    }
     this.renderer.setAnimationLoop(() => {
       const now = performance.now();
       const dt = Math.min((now - last) / 1000, 1 / 20);
       last = now;
-      const inp = this.input.consume();
+      let inp = this.input.consume();
+      if (autobot && this.state === 'playing') inp = Object.assign(emptyInput(), SCENARIOS.flow.input(this, botFrame++) || {});
       this.frame(dt, this.state === 'playing' ? inp : emptyInput());
+      this.adaptResolution(dt);
+      this.hud.tickFps(dt, this.pixelRatio);
     });
   }
 
