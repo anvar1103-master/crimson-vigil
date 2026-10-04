@@ -120,6 +120,7 @@ html, body {
 @keyframes banner { 0% { opacity: 0; letter-spacing: 30px; filter: blur(8px); } 15% { opacity: 1; letter-spacing: 10px; filter: blur(0); } 75% { opacity: 1; } 100% { opacity: 0; } }
 .bark { position: absolute; left: 50%; bottom: 120px; transform: translateX(-50%); max-width: 760px; text-align: center; font-family: var(--font-text); font-size: 24px; font-style: italic; color: var(--bone); text-shadow: 0 2px 6px #000, 0 0 2px #000; opacity: 0; }
 .bark .who { font-family: var(--font-ui); font-style: normal; color: var(--gold); font-size: 18px; letter-spacing: 2px; }
+.bark .who.foe { color: var(--blood-bright); }
 .bark.show { animation: bark 4.2s ease-out forwards; }
 @keyframes bark { 0% { opacity: 0; transform: translate(-50%, 8px); } 8% { opacity: 1; transform: translate(-50%, 0); } 85% { opacity: 1; } 100% { opacity: 0; } }
 .prompt { position: absolute; left: 50%; top: 60%; transform: translateX(-50%); font-size: 22px; letter-spacing: 2px; opacity: 0; transition: opacity .2s; text-shadow: 0 2px 6px #000; }

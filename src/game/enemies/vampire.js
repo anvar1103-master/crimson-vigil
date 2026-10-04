@@ -474,3 +474,73 @@ export class Vampire extends Enemy {
 }
 
 const UP = new V3(0, 1, 0);
+
+// Бледный Суверен: вампир-лорд в короне. Три фазы: клинок и сферы → туман и стая → кровавый дождь.
+export class Sovereign extends Vampire {
+  constructor(game, pos, opts = {}) {
+    super(game, pos, { ...opts, boss: 'sovereign' });
+    this.type = 'sovereign';
+    this.sizeScale = 1.45;
+    this.root.scale.setScalar(1.45);
+    this.orbCd = 4;
+    this.rainCd = 6;
+    this.summonCd = 8;
+    this.phase = 1;
+    // Корона из золотых зубцов.
+    const gold = this.mat(new THREE.MeshStandardMaterial({ color: 0xd0a040, metalness: 1, roughness: 0.25 }));
+    const crown = new THREE.Group();
+    crown.position.set(0, 0.12, -0.005);
+    for (let i = 0; i < 7; i++) {
+      const a = (i / 7) * Math.PI * 2;
+      const spike = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.09, 4), gold);
+      spike.position.set(Math.sin(a) * 0.095, 0.03, Math.cos(a) * 0.095);
+      crown.add(spike);
+    }
+    crown.add(new THREE.Mesh(new THREE.TorusGeometry(0.098, 0.012, 6, 20).rotateX(Math.PI / 2), gold));
+    this.head.add(crown);
+    this.eyeBase = [14, 0.6, 2.5];
+    this.setRim(0.45, 0.02, 0.07);
+  }
+
+  update(dt) {
+    super.update(dt);
+    if (!this.alive || this.state === 'rise') return;
+    const game = this.game, p = game.player;
+    const k = this.hp / this.maxHp;
+    const newPhase = k > 0.6 ? 1 : k > 0.3 ? 2 : 3;
+    if (newPhase !== this.phase) {
+      this.phase = newPhase;
+      game.hud.banner(newPhase === 2 ? 'Туман и крылья' : 'Кровавый дождь', 'Суверен меняет облик');
+      game.hud.say(newPhase === 2 ? 'Ты лишь задержал рассвет, охотник.' : 'Тогда утонешь в крови!', this.bossName);
+      this.blink();
+      this.speed *= 1.15;
+    }
+    this.orbCd -= dt; this.rainCd -= dt; this.summonCd -= dt;
+    if (this.state === 'stalk' && this.orbCd <= 0 && p.alive) {
+      // Веер кровавых сфер.
+      const from = this.center().add(new V3(0, 0.6, 0));
+      const base = new V3(p.pos.x - from.x, p.pos.y + 1.2 - from.y, p.pos.z - from.z).normalize();
+      const n = this.phase === 1 ? 5 : 7;
+      for (let i = 0; i < n; i++) game.hazards.orb(from, base.clone().applyAxisAngle(UP, (i - (n - 1) / 2) * 0.18), { speed: 10, damage: 12, homing: 0.3 });
+      game.audio.burst({ type: 'lowpass', freq: 500, freq1: 2500, gain: 0.7, decay: 0.3, pos: this.pos });
+      this.orbCd = this.phase === 3 ? 3.5 : 5;
+    }
+    if (this.phase >= 2 && this.summonCd <= 0) {
+      for (let i = 0; i < 4; i++) game.enemies.spawn('bat', this.center().add(new V3(randRange(-1, 1), 1, randRange(-1, 1))));
+      this.summonCd = 12;
+      if (this.blinkCd <= 0) this.blink();
+    }
+    if (this.phase === 3 && this.rainCd <= 0) {
+      for (let i = 0; i < 7; i++) {
+        const a = Math.random() * Math.PI * 2, r = i === 0 ? 0 : randRange(2, 9);
+        game.hazards.mark(new V3(p.pos.x + Math.cos(a) * r, 0, p.pos.z + Math.sin(a) * r), { delay: 1.1 + i * 0.08, radius: 2.0, damage: 20 });
+      }
+      this.rainCd = 6;
+    }
+  }
+
+  takeDamage(amount, info = {}) {
+    // Суверена не ставит в стаггер обычное попадание.
+    return super.takeDamage(amount * (this.phase === 3 ? 0.9 : 1), { ...info, headshot: info.headshot && amount > 150 });
+  }
+}

@@ -156,3 +156,85 @@ export class Enemy {
     for (const m of this.materials) m.dispose();
   }
 }
+
+// Наземный враг с общей логикой передвижения: разгон, отталкивание, коллизии, поворот.
+export class GroundEnemy extends Enemy {
+  constructor(game) {
+    super(game);
+    this.speedNow = 0;
+    this.knock = new V3();
+    this.walkPhase = Math.random() * 10;
+    this.dying = 0;
+  }
+
+  toPlayer() {
+    const p = this.game.player.pos;
+    const dx = p.x - this.pos.x, dz = p.z - this.pos.z;
+    const d = Math.hypot(dx, dz) || 1e-4;
+    return { dx: dx / d, dz: dz / d, dist: d, yaw: Math.atan2(dx, dz) };
+  }
+
+  // Разгон к желаемой скорости вдоль dir (единичный вектор в XZ).
+  locomote(dt, dirX, dirZ, want, accel = 6) {
+    this.speedNow += (want - this.speedNow) * (1 - Math.exp(-accel * dt));
+    this.vel.x = dirX * this.speedNow + this.knock.x;
+    this.vel.z = dirZ * this.speedNow + this.knock.z;
+    this.knock.multiplyScalar(Math.exp(-dt * 6));
+    this.pos.x += this.vel.x * dt;
+    this.pos.z += this.vel.z * dt;
+    this.walkPhase += dt * Math.abs(this.speedNow) * 2.4;
+  }
+
+  separate() {
+    const game = this.game;
+    for (const o of game.enemies.list) {
+      if (o === this || !o.alive || o.flying) continue;
+      const dx = this.pos.x - o.pos.x, dz = this.pos.z - o.pos.z, d = Math.hypot(dx, dz), m = this.radius + o.radius;
+      if (d < m && d > 1e-4) { this.pos.x += (dx / d) * (m - d) * 0.5; this.pos.z += (dz / d) * (m - d) * 0.5; }
+    }
+    const p = game.player.pos, dx = this.pos.x - p.x, dz = this.pos.z - p.z, d = Math.hypot(dx, dz), m = this.radius + 0.4;
+    if (d < m && d > 1e-4) { this.pos.x += (dx / d) * (m - d); this.pos.z += (dz / d) * (m - d); }
+    return game.level.resolveCircle(this.pos, this.radius, 0.5);
+  }
+
+  turnTo(yaw, rate, dt) {
+    let d = (yaw - this.facing) % (Math.PI * 2);
+    if (d > Math.PI) d -= Math.PI * 2;
+    if (d < -Math.PI) d += Math.PI * 2;
+    this.facing += d * (1 - Math.exp(-rate * dt));
+    this.root.rotation.y = this.facing;
+  }
+
+  // Общая смерть: заваливается и сгорает.
+  updateDying(dt) {
+    this.dying += dt;
+    const t = Math.min(1, this.dying / 0.45);
+    this.root.rotation.x = -t * t * 1.3;
+    this.root.position.y = -t * 0.15;
+    const d = Math.max(0, (this.dying - 0.35) / 1.0);
+    this.setDissolve(0.02 + d);
+    if (Math.random() < 0.6 && d > 0) this.game.fx.ash(this.center().setY(0.4), 0.2);
+    if (d >= 1) this.dead = true;
+  }
+
+  takeDamage(amount, info = {}) {
+    if (!this.alive) return false;
+    if (this.armor) amount *= this.armor;
+    this.hp -= amount;
+    if (!info.dot) {
+      this.flash = 1;
+      if (info.dir) this.knock.addScaledVector(new V3(info.dir.x, 0, info.dir.z).normalize(), (info.knockback ?? 2) / (this.mass || 1));
+    }
+    if (this.hp <= 0) { this.die(info); return true; }
+    if (!info.dot) this.onHurt?.(amount, info);
+    return false;
+  }
+
+  die() {
+    this.alive = false;
+    this.dying = 0;
+    this.setDissolve(0.02, new V3(6, 1.6, 0.3));
+    this.game.fx.ash(this.center(), 1.2);
+    this.onDeath?.();
+  }
+}

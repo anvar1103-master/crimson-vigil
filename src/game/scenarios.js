@@ -181,9 +181,11 @@ export const SCENARIOS = {
       g.audio.enabled = false;
       g.startRun();
       g.player.maxHealth = g.player.health = 400; // бот слабый — даём ему форы, проверяем логику, а не баланс
+      if (g.params.has('god')) g.run.stats.damage = 4;
     },
     input(g, i) {
       const p = g.player, inp = {};
+      if (g.params.has('god')) { p.invuln = 1; p.health = p.maxHealth; }
       if (i % 900 === 0) console.log(`FLOW t=${(i / 60).toFixed(0)}s depth=${g.run.depth} biome=${g.run.biome} zone=${g.zones.state} hp=${Math.round(p.health)} kills=${g.run.kills} gold=${g.run.gold} relics=${g.run.relics.map((r) => r.id).join(',')} state=${g.state}`);
       if (!p.alive) return inp;
       const steer = (target, stopDist = 0.5) => {
@@ -238,6 +240,25 @@ export const SCENARIOS = {
     steps: 10,
     setup(g) {
       g.choiceUI.show({ title: 'Дар ночи', subtitle: 'Выберите одну реликвию', options: [RELICS[0], RELICS[5], RELICS[21]] });
+    },
+  },
+
+  // Бестиарий: все виды тварей в ряд (?boss=butcher|broodmother|bellringer|sovereign — один босс).
+  bestiary: {
+    steps: 100,
+    setup(g) {
+      const boss = g.params.get('boss');
+      g.player.pitch = 0.1;
+      if (boss) {
+        g.enemies.startWaves({ boss, bossName: boss, tier: 0 });
+        g.enemies.director.breakTimer = 0;
+        g.level.bossPoint = ahead(g, boss === 'broodmother' ? 9 : 7);
+        if (boss === 'broodmother') g.player.pitch = 0.42;
+        return;
+      }
+      const types = ['thrall', 'stalker', 'witch', 'brute', 'bat'];
+      types.forEach((t, i) => g.enemies.spawn(t, ahead(g, 6 + (t === 'brute' ? 2 : 0), (i - 2) * 1.9)));
+      for (const e of g.enemies.list) { e.speed = 0; e.lungeCd = 1e9; e.attackCd = 1e9; e.chargeCd = 1e9; e.castCd = 1e9; e.diveCd = 1e9; }
     },
   },
 

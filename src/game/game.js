@@ -20,6 +20,7 @@ import { Crossbow, Projectiles } from './weapons/crossbow.js';
 import { FX } from './fx.js';
 import { Combat } from './combat.js';
 import { EnemyManager } from './enemies/director.js';
+import { Hazards } from './enemies/hazards.js';
 import { Run, BIOMES } from './run.js';
 import { ZoneController } from './zones.js';
 import { HUD } from '../ui/hud.js';
@@ -81,6 +82,7 @@ export class Game {
     this.fx = new FX(this);
     this.combat = new Combat(this);
     this.enemies = new EnemyManager(this);
+    this.hazards = new Hazards(this);
     this.coins = new CoinShower(this);
     this.zones = new ZoneController(this);
     this.hud = new HUD(this, uiRoot);
@@ -172,6 +174,7 @@ export class Game {
   // ——— Поток забега ———
   resetWorld() {
     this.enemies.clear();
+    this.hazards.clear();
     this.fx.clear();
     this.projectiles.clear();
     this.coins.clear();
@@ -451,6 +454,7 @@ export class Game {
       else this.weapon.update(dtw, emptyInput());
       this.projectiles.update(dtw);
       this.enemies.update(dtw);
+      this.hazards.update(dtw);
       this.weather.update(dtw);
       this.coins.update(dtw);
       this.zones.update(dtw);

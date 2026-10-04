@@ -200,8 +200,8 @@ export class HUD {
     this.bannerEl.classList.add('show');
   }
 
-  say(text) {
-    this.bark.innerHTML = `<span class="who">Вейл:</span> ${text}`;
+  say(text, who = 'Вейл') {
+    this.bark.innerHTML = `<span class="who ${who === 'Вейл' ? '' : 'foe'}">${who}:</span> ${text}`;
     this.bark.classList.remove('show');
     void this.bark.offsetWidth;
     this.bark.classList.add('show');
