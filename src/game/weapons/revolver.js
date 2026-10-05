@@ -277,6 +277,7 @@ export class Revolver {
     const game = this.game, stats = game.run.stats;
     this.ammo--;
     this.spent++;
+    game.lastShotTime = game.time;
     this.cooldown = this.fireDelay / stats.fireRate;
     this.kickZ.impulse(3.2);
     this.kickRot.impulse(16);

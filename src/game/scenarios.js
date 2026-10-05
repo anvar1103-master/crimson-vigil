@@ -26,6 +26,8 @@ export const SCENARIOS = {
       return {};
     },
   },
+  // Крупный план: клетка висельника и вороны (деревня, у столба).
+  cage: { steps: 30, setup(g) { g.player.teleport(new V3(-7, 0, 12.5), 0.75); g.player.pitch = 0.3; } },
   // Молния (кадр на пике вспышки).
   lightning: { steps: 14, setup(g) { g.weather.strike(); } },
 

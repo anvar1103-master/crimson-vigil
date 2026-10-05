@@ -13,7 +13,9 @@ export class Ambience {
     game.scene.add(this.group);
     this.bats = [];
     this.banks = [];
+    this.crows = [];
     if (cfg.bats) this.makeBats(cfg.bats);
+    if (game.level.perches?.length) this.makeCrows(game.level.perches);
     if (cfg.fogBanks) this.makeFogBanks(cfg.fogBanks, cfg.fogBankRadius || [12, 30]);
   }
 
@@ -54,6 +56,33 @@ export class Ambience {
     }
   }
 
+  // Вороны сидят на оградах и надгробиях, вертят головой и взлетают, если подойти или выстрелить.
+  makeCrows(perches) {
+    const mat = withFog(new THREE.MeshStandardMaterial({ color: 0x0c0a0e, roughness: 0.4, metalness: 0.2 }));
+    const beakMat = withFog(new THREE.MeshStandardMaterial({ color: 0x1a1612, roughness: 0.6 }));
+    const body = new THREE.SphereGeometry(0.11, 10, 8); body.scale(1, 0.85, 1.6);
+    const head = new THREE.SphereGeometry(0.065, 8, 6);
+    const beak = new THREE.ConeGeometry(0.022, 0.09, 5).rotateX(Math.PI / 2);
+    const tail = new THREE.BoxGeometry(0.1, 0.015, 0.16);
+    const wingG = new THREE.BoxGeometry(0.32, 0.012, 0.14).translate(0.16, 0, 0);
+    for (const p of perches) {
+      const g = new THREE.Group();
+      g.position.copy(p);
+      const b = new THREE.Mesh(body, mat); b.position.y = 0.1; g.add(b);
+      const h = new THREE.Group(); h.position.set(0, 0.2, 0.12); g.add(h);
+      h.add(new THREE.Mesh(head, mat));
+      const bk = new THREE.Mesh(beak, beakMat); bk.position.z = 0.08; h.add(bk);
+      const t = new THREE.Mesh(tail, mat); t.position.set(0, 0.08, -0.2); t.rotation.x = 0.3; g.add(t);
+      const wl = new THREE.Mesh(wingG, mat), wr = new THREE.Mesh(wingG, mat);
+      wl.position.set(0.05, 0.13, 0); wr.position.set(-0.05, 0.13, 0); wr.scale.x = -1;
+      wl.visible = wr.visible = false;
+      g.add(wl, wr);
+      g.rotation.y = rand() * Math.PI * 2;
+      this.group.add(g);
+      this.crows.push({ g, h, wl, wr, state: 'perch', t: rand() * 5, vel: new THREE.Vector3(), ph: rand() * 10 });
+    }
+  }
+
   // Силуэты летучих мышей кружат вдали на фоне луны (не враги, просто декор).
   makeBats(n) {
     const wing = new THREE.BufferGeometry();
@@ -78,6 +107,30 @@ export class Ambience {
       this.bankMat.uniforms.uTime.value = t;
       this.bankMat.uniforms.uCam.value.copy(cam);
       for (const b of this.banks) b.rotation.y = Math.atan2(cam.x - b.position.x, cam.z - b.position.z);
+    }
+    // Вороны.
+    const shotRecently = game.time - (game.lastShotTime ?? -99) < 0.2;
+    for (const c2 of this.crows) {
+      c2.t += dt;
+      if (c2.state === 'perch') {
+        // Резкие повороты головы, как у настоящей птицы.
+        if (c2.t > 1.2 + (c2.ph % 1.5)) { c2.t = 0; c2.h.rotation.y = randRange(-1, 1); c2.h.rotation.x = randRange(-0.3, 0.4); }
+        const d = c2.g.position.distanceTo(cam);
+        if (d < 6 || (shotRecently && d < 25)) {
+          c2.state = 'fly'; c2.t = 0;
+          c2.vel.set(randRange(-2, 2), randRange(3, 4.5), randRange(-2, 2)).add(c2.g.position.clone().sub(cam).setY(0).normalize().multiplyScalar(3));
+          c2.wl.visible = c2.wr.visible = true;
+          game.audio.burst?.({ type: 'bandpass', freq: 1100, freq1: 700, q: 4, gain: 0.15, attack: 0.02, decay: 0.2, pos: c2.g.position, reverb: 0.5 });
+          game.audio.burst?.({ type: 'lowpass', freq: 600, gain: 0.2, attack: 0.01, decay: 0.15, pos: c2.g.position });
+        }
+      } else if (c2.state === 'fly') {
+        c2.vel.y += dt * 0.5;
+        c2.g.position.addScaledVector(c2.vel, dt);
+        c2.g.rotation.y = Math.atan2(c2.vel.x, c2.vel.z);
+        const f = Math.sin(c2.t * 22) * 0.9;
+        c2.wl.rotation.z = f; c2.wr.rotation.z = -f;
+        if (c2.t > 8) { c2.state = 'gone'; c2.g.visible = false; }
+      }
     }
     // Стая у луны.
     if (this.bats.length) {

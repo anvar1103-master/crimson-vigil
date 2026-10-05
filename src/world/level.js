@@ -36,6 +36,15 @@ export class Level {
     this.batches.get(key).geos.push(g);
   }
 
+  // Выбрать несколько насестов для ворон из кандидатов, собранных пропсами.
+  pickPerches(n) {
+    const c = (this.perchCandidates || []).filter((p) => Math.abs(p.x) < 22 && Math.abs(p.z) < 22);
+    const out = [];
+    while (out.length < n && c.length) out.push(c.splice(Math.floor(this.rng() * c.length), 1)[0]);
+    this.perches = out;
+    return out;
+  }
+
   flush() {
     for (const b of this.batches.values()) {
       const merged = mergeGeometries(b.geos, false);

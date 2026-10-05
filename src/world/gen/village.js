@@ -6,6 +6,7 @@ import * as P from '../props.js';
 import * as Q from '../props2.js';
 import { registerBiome } from '../biomes.js';
 import { addGrass, groundMask } from '../grass.js';
+void 0;
 import { addPuddles } from '../ambience.js';
 
 const V3 = THREE.Vector3;
@@ -88,8 +89,13 @@ export function buildVillage(scene, seed = 1) {
   // Центр: колодец, виселица или крест святого.
   const landmark = Math.floor(rng() * 3);
   if (landmark === 0) Q.well(L, M, 0, -1.5);
-  else if (landmark === 1) Q.gallows(L, M, 0, -2.5, rng() * 0.5);
+  else if (landmark === 1) { const r = rng() * 0.5; Q.gallows(L, M, 0, -2.5, r); Q.hangingCage(L, M, 0.6 * Math.cos(r) + 0.15, 5.1, -2.5 - 0.6 * Math.sin(r)); }
   else P.stoneCross(L, M, 0, -2, 0.85);
+  // Клетка висельника на столбе у края площади.
+  L.add(boxGeo(0.25, 6, 0.25, rng), M.wood, mat4(-11.5, 3, 9));
+  L.add(boxGeo(1.6, 0.18, 0.18, rng), M.wood, mat4(-10.9, 5.9, 9));
+  L.circle(-11.5, 9, 0.3);
+  Q.hangingCage(L, M, -10.3, 5.8, 9);
   P.candles(L, M, 1.6, 0, 0.2, 5, 0.3);
 
   // Фонари вокруг площади.
@@ -139,6 +145,7 @@ export function buildVillage(scene, seed = 1) {
   });
   addPuddles(L, { count: 22, area: 12, seed: seed + 9, mask: (x, z) => Math.hypot(x, z + 1) < 9.5 && groundMask(L)(x, z) });
   L.ambient = { ash: 0.8, embersAir: 0.6, bats: 7, fogBanks: 8, fogBankRadius: [14, 30] };
+  L.pickPerches(6);
   L.rewardPoint = new V3(0, 0, 4.5);
   L.bossPoint = new V3(0, 0, -12);
   L.exitPoints = [

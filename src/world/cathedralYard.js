@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { Level } from './level.js';
 import { boxGeo, cylGeo, extrudeGeo, archPoints, archRingShape, archShape, mat4 } from './geo.js';
 import * as P from './props.js';
+import * as Q from './props2.js';
 import { roseWindowTex, lancetGlassTex } from '../core/textures.js';
 import { withFog } from '../core/fog.js';
 import { addGrass, groundMask } from './grass.js';
@@ -29,7 +30,7 @@ export const yardAtmosphere = {
 
 export function buildCathedralYard(scene, seed = 2024) {
   const L = new Level(scene, seed);
-  const M = P.createMaterials();
+  const M = Q.extraMaterials(P.createMaterials());
   L.mats = M;
   L.atmosphere = yardAtmosphere;
   L.bounds = { minX: -16.5, maxX: 19.4, minZ: -18.4, maxZ: 19.4 };
@@ -138,6 +139,16 @@ export function buildCathedralYard(scene, seed = 2024) {
   }
   P.ironFence(L, M, 19.5, -18.4, 19.5, 19.5);
 
+  // ——— Горгульи, клетки, вороны ———
+  for (const sx of [-1, 1]) {
+    Q.gargoyle(L, M, sx * 7.6, 15.2, -18.7, 0, 1.1);
+    Q.gargoyle(L, M, sx * 10.5 + sx * 2.2, 25.2, -18.2, sx * 0.4, 1.3);
+    Q.gargoyle(L, M, sx * 10.5 - sx * 2.2, 25.2, -18.2, -sx * 0.2, 1.3);
+  }
+  Q.hangingCage(L, M, -13.2, 6.9, -10.5);
+  Q.hangingCage(L, M, -13.4, 6.9, 12);
+  (L.perchCandidates ||= []).push(new V3(0.85, 4.65, -10.5), new V3(-0.85, 4.65, -10.5), new V3(14.5, 6.0, -12), new V3(2.6, 0.15, -17.6));
+
   // ——— Лес за оградой и дальний план ———
   for (let i = 0; i < 34; i++) {
     let x, z;
@@ -155,6 +166,7 @@ export function buildCathedralYard(scene, seed = 2024) {
   const pavedOnly = (x, z) => ((Math.abs(x) < 2.3 && z > -6 && z < 18) || (Math.abs(x) < 8.3 && z > -18 && z < -6)) && groundMask(L)(x, z);
   addPuddles(L, { count: 16, area: 18, seed: seed + 4, mask: pavedOnly });
   L.ambient = { bats: 8, spores: 0.25, fogBanks: 10, fogBankRadius: [12, 30] };
+  L.pickPerches(7);
   // Кладбищенская трава: всё, что не замощено.
   addGrass(L, {
     area: 36, count: 6000, seed: seed + 11, scale: [0.28, 0.75], tint: 0xc0b8a8,

@@ -74,7 +74,7 @@ export function createSky({ horizon, zenith, moonDir, moonColor = [1.0, 0.94, 0.
         float maria = smoothstep( 0.45, 0.62, fbm( vec3( mp * 1.3 + 4.0, 1.3 ) ) );
         vec3 moon = uMoonColor * ( 0.78 + 0.45 * crater - 0.22 * maria );
         moon *= 0.6 + 0.4 * sqrt( max( 0.0, 1.0 - dot( mp, mp ) ) );
-        moon *= 1.25;
+        moon *= 0.95;
         col = mix( col, moon, disk );
 
         // Облака частично закрывают луну.

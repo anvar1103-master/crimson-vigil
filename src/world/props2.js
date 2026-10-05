@@ -4,6 +4,7 @@ import { boxGeo, cylGeo, extrudeGeo, archShape, archRingShape, mat4 } from './ge
 import * as TX from '../core/textures.js';
 import { withFog } from '../core/fog.js';
 import { glowTex } from '../core/textures.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 const V3 = THREE.Vector3;
 const M_ = (o) => withFog(new THREE.MeshStandardMaterial(o));
@@ -108,6 +109,7 @@ export function well(L, M, x, z) {
   L.add(extrudeGeo(tri, 1.6), M.roof, mat4(x, 2.75, z, 0, Math.PI / 2, 0));
   L.add(cylGeo(0.16, 0.13, 0.25, 10, rng, true), M.planks, mat4(x + 0.3, 1.5, z));
   L.circle(x, z, 1.25);
+  (L.perchCandidates ||= []).push(new V3(x, 3.65, z + 0.3), new V3(x + 1.05, 0.95, z));
 }
 
 export function gallows(L, M, x, z, ry = 0) {
@@ -175,6 +177,7 @@ export function woodFence(L, M, x0, z0, x1, z1) {
   for (let i = 0; i <= n; i++) {
     const t = i / n;
     L.add(boxGeo(0.14, 1.3, 0.14, L.rng), M.wood, mat4(x0 + dx * t, 0.65, z0 + dz * t, 0, ang, (L.rng() - 0.5) * 0.1));
+    (L.perchCandidates ||= []).push(new V3(x0 + dx * t, 1.3, z0 + dz * t));
   }
   for (const y of [0.45, 1.0]) L.add(boxGeo(0.06, 0.14, len, L.rng), M.planks, mat4((x0 + x1) / 2, y, (z0 + z1) / 2, 0, ang, (L.rng() - 0.5) * 0.05));
   const steps = Math.ceil(len / 1.5);
@@ -385,6 +388,111 @@ export function stainedWindow(L, x, y, z, ry, w = 1.6, spring = 3.2, color = [1.
   m.rotation.y = ry;
   L.root.add(m);
   return m;
+}
+
+// Горгулья: присевшая тварь с рогами и сложенными крыльями — для карнизов и фронтонов.
+export function gargoyle(L, M, x, y, z, ry = 0, s = 1) {
+  const at = (lx, ly, lz, rx = 0, rry = 0, rz = 0) => {
+    const [wx, , wz] = local(x, z, ry, lx * s, 0, lz * s);
+    return mat4(wx, y + ly * s, wz, rx, ry + rry, rz);
+  };
+  const add = (geo, lx, ly, lz, rx, rry, rz) => L.add(geo, M.trim, at(lx, ly, lz, rx, rry, rz));
+  add(boxGeo(0.7 * s, 0.25 * s, 0.7 * s, L.rng), 0, 0.12, 0);
+  const body = new THREE.SphereGeometry(0.32 * s, 10, 8); body.scale(1, 1.1, 1.25);
+  add(body, 0, 0.55, 0.05, 0.4);
+  add(new THREE.SphereGeometry(0.17 * s, 10, 8), 0, 0.92, 0.32);
+  for (const sx of [-1, 1]) {
+    add(new THREE.ConeGeometry(0.04 * s, 0.22 * s, 5), sx * 0.09, 1.1, 0.26, -0.5, 0, sx * 0.5);
+    const wing = new THREE.Shape();
+    wing.moveTo(0, 0); wing.lineTo(0.55 * s, 0.6 * s); wing.lineTo(0.35 * s, 0.1 * s); wing.lineTo(0.5 * s, -0.15 * s); wing.closePath();
+    const wg = new THREE.ExtrudeGeometry(wing, { depth: 0.04 * s, bevelEnabled: false });
+    if (sx < 0) wg.scale(-1, 1, 1);
+    add(wg, sx * 0.15, 0.6, -0.15, 0, sx * 0.4, 0);
+    add(new THREE.CylinderGeometry(0.06 * s, 0.05 * s, 0.35 * s, 6), sx * 0.18, 0.3, 0.3, 0.6);
+  }
+  add(new THREE.ConeGeometry(0.06 * s, 0.12 * s, 4), 0, 0.85, 0.5, Math.PI / 2);
+}
+
+// Подвесная клетка со скелетом; качается на цепи.
+export function hangingCage(L, M, x, y, z) {
+  const g = new THREE.Group();
+  g.position.set(x, y, z);
+  const iron = M.iron, bone = M.bone;
+  // Детали копятся по материалам и сливаются: клетка = 2 draw call-а вместо ~25.
+  const parts = new Map([[iron, []], [bone, []]]);
+  const add = (geo, mat, px, py, pz, rx = 0, ry = 0, rz = 0) => {
+    const holder = { scale: { set: (a, b, c) => { holder.s = [a, b, c]; } } };
+    parts.get(mat).push(() => {
+      const gg = (geo.index ? geo.toNonIndexed() : geo.clone());
+      for (const n of Object.keys(gg.attributes)) if (!['position', 'normal', 'uv'].includes(n)) gg.deleteAttribute(n);
+      const s = holder.s || [1, 1, 1];
+      gg.applyMatrix4(new THREE.Matrix4().compose(new V3(px, py, pz), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), new V3(...s)));
+      return gg;
+    });
+    return holder;
+  };
+  add(new THREE.CylinderGeometry(0.012, 0.012, 1.2, 4), iron, 0, -0.6, 0);
+  add(new THREE.TorusGeometry(0.4, 0.02, 4, 16).rotateX(Math.PI / 2), iron, 0, -1.25, 0);
+  add(new THREE.TorusGeometry(0.4, 0.02, 4, 16).rotateX(Math.PI / 2), iron, 0, -2.6, 0);
+  add(new THREE.ConeGeometry(0.42, 0.3, 12, 1, true), iron, 0, -1.1, 0);
+  for (let i = 0; i < 10; i++) {
+    const a = (i / 10) * Math.PI * 2;
+    add(new THREE.CylinderGeometry(0.012, 0.012, 1.35, 4), iron, Math.cos(a) * 0.4, -1.92, Math.sin(a) * 0.4);
+  }
+  // Скелет, сидящий в клетке.
+  add(new THREE.SphereGeometry(0.1, 8, 6), bone, 0.05, -1.75, 0.08).scale.set(0.9, 1.1, 1);
+  add(new THREE.CylinderGeometry(0.03, 0.04, 0.45, 5), bone, 0, -2.05, 0, 0.3);
+  for (const sx of [-1, 1]) {
+    add(new THREE.CylinderGeometry(0.02, 0.02, 0.5, 4), bone, sx * 0.14, -2.1, 0.1, 0.6, 0, sx * 0.4);
+    add(new THREE.CylinderGeometry(0.022, 0.022, 0.55, 4), bone, sx * 0.1, -2.45, 0.2, 1.3);
+  }
+  for (let i = 0; i < 4; i++) add(new THREE.TorusGeometry(0.1 - i * 0.008, 0.01, 4, 10, Math.PI), bone, 0, -1.92 - i * 0.06, 0.04, 0, 0, Math.PI);
+  for (const [mat, list] of parts) {
+    const merged = mergeGeometries(list.map((f) => f()), false);
+    const mesh = new THREE.Mesh(merged, mat);
+    mesh.castShadow = true;
+    g.add(mesh);
+  }
+  L.root.add(g);
+  const ph = L.rng() * 10;
+  L.updaters.push((dt, t) => { g.rotation.z = Math.sin(t * 0.8 + ph) * 0.05; g.rotation.x = Math.sin(t * 0.6 + ph * 2) * 0.04; g.rotation.y = Math.sin(t * 0.2 + ph) * 0.3; });
+}
+
+let _web = null;
+function webTex() {
+  if (_web) return _web;
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const ctx = c.getContext('2d');
+  ctx.strokeStyle = 'rgba(230,225,215,0.7)';
+  ctx.lineWidth = 1.2;
+  const cx = 0, cy = 0, n = 9;
+  for (let i = 0; i <= n; i++) {
+    const a = (i / n) * Math.PI / 2;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(Math.cos(a) * 256, Math.sin(a) * 256); ctx.stroke();
+  }
+  for (let r = 18; r < 256; r += 16 + r * 0.08) {
+    ctx.beginPath();
+    for (let i = 0; i <= n; i++) {
+      const a = (i / n) * Math.PI / 2, rr = r * (0.92 + Math.random() * 0.1);
+      const x = Math.cos(a) * rr, y = Math.sin(a) * rr;
+      if (i === 0) ctx.moveTo(x, y); else ctx.quadraticCurveTo(Math.cos(a - 0.08) * rr * 0.93, Math.sin(a - 0.08) * rr * 0.93, x, y);
+    }
+    ctx.stroke();
+  }
+  _web = new THREE.CanvasTexture(c);
+  return _web;
+}
+
+// Паутина в углу: четверть-веер, повёрнутый в угол между стенами/колонной.
+export function cobweb(L, x, y, z, ry, size = 1.6) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(size, size).translate(size / 2, -size / 2, 0), new THREE.MeshBasicMaterial({
+    map: webTex(), transparent: true, depthWrite: false, side: THREE.DoubleSide, color: new THREE.Color(0.32, 0.29, 0.29), fog: true,
+  }));
+  m.position.set(x, y, z);
+  m.rotation.set(0, ry, Math.PI);
+  m.rotateX(0.5);
+  L.root.add(m);
 }
 
 export { archRingShape, V3 };

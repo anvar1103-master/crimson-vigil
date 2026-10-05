@@ -174,6 +174,14 @@ export function buildCourtyard(scene, seed = 1) {
   L.flush();
   addPuddles(L, { count: 14, area: 16, seed: seed + 2, mask: (x, z) => Math.hypot(x, z + 3) > 4 && L.colliders.every((c) => c.type === 'circle' ? Math.hypot(x - c.x, z - c.z) > c.r + 1 : !(x > c.minX - 1 && x < c.maxX + 1 && z > c.minZ - 1 && z < c.maxZ + 1)) });
   L.ambient = { bats: 12, ash: 0.25, embersAir: 0.3 };
+  // Горгульи на донжоне и клетки на куртинах.
+  for (const sx of [-1, 1]) {
+    Q.gargoyle(L, M, sx * 9, 24.1, -20.9, 0, 1.4);
+    Q.gargoyle(L, M, sx * 19.8, 10.5, sx * 8, -sx * Math.PI / 2, 1.2);
+    Q.hangingCage(L, M, sx * 19.7, 8.6, -6);
+  }
+  (L.perchCandidates ||= []).push(new V3(-6, 10.9, 19.9), new V3(5, 10.9, 19.9), new V3(19.9, 10.9, 4), new V3(-19.9, 10.9, -9));
+  L.pickPerches(5);
   L.rewardPoint = new V3(0, 0, 5);
   L.bossPoint = new V3(0, 0, -14);
   L.exitPoints = [

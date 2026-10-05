@@ -161,6 +161,7 @@ export class Crossbow {
     const game = this.game, stats = game.run.stats;
     this.ammo = 0;
     this.drawn = 0;
+    game.lastShotTime = game.time;
     this.bolt.visible = false;
     this.kickZ.impulse(5);
     this.kickRot.impulse(10);

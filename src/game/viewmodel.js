@@ -45,7 +45,7 @@ export class ViewModel {
     if (best) {
       _v.copy(best.light.position).sub(camera.position).applyQuaternion(_q).normalize().multiplyScalar(0.8);
       this.fireLight.position.copy(_v);
-      const target = best.light.intensity * 0.12 * clamp(1 - bd / 9, 0, 1) ** 1.5;
+      const target = Math.min(1.2, best.light.intensity * 0.05 * clamp(1 - bd / 9, 0, 1) ** 1.5);
       this.fireLight.intensity = damp(this.fireLight.intensity, target, 8, dt);
     } else this.fireLight.intensity = damp(this.fireLight.intensity, 0, 8, dt);
 

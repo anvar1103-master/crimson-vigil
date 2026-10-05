@@ -92,6 +92,13 @@ export function buildCrypt(scene, seed = 1) {
 
   L.flush();
   L.ambient = { dust: 0.9 };
+  // Паутина в углах между колоннами и сводами.
+  for (const x of xs) for (const z of zs) {
+    if (rng() < 0.55) continue;
+    const q = Math.floor(rng() * 4);
+    Q.cobweb(L, x + (q % 2 ? 0.45 : -0.45), top + 0.1, z + (q < 2 ? 0.45 : -0.45), q * Math.PI / 2, 1.2 + rng() * 0.8);
+  }
+  for (const [x, z, ry] of [[-W + 0.1, -D + 0.1, 0], [W - 0.1, -D + 0.1, -Math.PI / 2], [-W + 0.1, D - 0.1, Math.PI / 2], [W - 0.1, D - 0.1, Math.PI]]) Q.cobweb(L, x, H - 0.4, z, ry, 2.4);
   L.rewardPoint = new V3(0, 0, 4);
   L.bossPoint = new V3(0, 0, -11);
   L.exitPoints = [

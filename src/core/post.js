@@ -98,7 +98,8 @@ const GodRaysShader = {
         illum *= 0.962;
       }
       vec2 d = ( vUv - uSun ) * vec2( uAspect, 1.0 );
-      float falloff = 1.0 - smoothstep( 0.1, 1.2, length( d ) );
+      // Сам диск луны лучами не засвечиваем — иначе пропадают кратеры.
+      float falloff = ( 1.0 - smoothstep( 0.1, 1.2, length( d ) ) ) * smoothstep( 0.03, 0.16, length( d ) );
       gl_FragColor = vec4( base.rgb + acc * ( 0.028 * uIntensity * falloff ) * uTint, base.a );
     }`,
 };

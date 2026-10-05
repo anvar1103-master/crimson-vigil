@@ -88,6 +88,7 @@ export function tombstone(L, M, x, z, kind = 0, ry = 0) {
     L.add(boxGeo(0.7, 0.15, 0.16, rng), M.tomb, mat4(x, h * 0.72 - sink, z, tilt, ry, roll));
     L.add(boxGeo(0.5, 0.25, 0.4, rng), M.tomb, mat4(x, 0.1, z, 0, ry, 0));
     L.circle(x, z, 0.3, h);
+    (L.perchCandidates ||= []).push(new THREE.Vector3(x, h - sink + 0.0, z));
   } else {
     const h = 1.6 + rng() * 0.8;
     L.add(boxGeo(0.7, 0.4, 0.7, rng), M.tomb, mat4(x, 0.2, z, 0, ry, 0));
@@ -166,6 +167,7 @@ export function ironFence(L, M, x0, z0, x1, z1, { h = 1.9, gap = 0.14, postEvery
     L.add(boxGeo(0.45, h + 0.4, 0.45, L.rng), M.trim, mat4(x, (h + 0.4) / 2, z));
     L.add(boxGeo(0.6, 0.15, 0.6, L.rng), M.trim, mat4(x, h + 0.47, z));
     L.add(new THREE.SphereGeometry(0.17, 8, 6), M.trim, mat4(x, h + 0.68, z));
+    (L.perchCandidates ||= []).push(new THREE.Vector3(x, h + 0.85, z));
   }
 }
 
