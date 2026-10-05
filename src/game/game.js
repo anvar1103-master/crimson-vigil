@@ -32,7 +32,7 @@ import { SCENARIOS } from './scenarios.js';
 import { loadMeta, saveMeta, META_UPGRADES } from './meta.js';
 import { loadSettings, SettingsUI, QUALITY } from '../ui/settings.js';
 import { rollRelics } from './relics.js';
-import { CODEX, recordKill } from './codex.js';
+import { CODEX, NOTES, recordKill } from './codex.js';
 
 function countLights(scene) {
   let n = 0;
@@ -372,6 +372,15 @@ export class Game {
   }
 
   // Святилище Ордена: трата кровавых осколков на постоянные улучшения.
+  // Чтение записки: пергамент поверх игры, игра на паузе.
+  async readNote(idx) {
+    const n = NOTES[idx];
+    this.meta.notes ||= [];
+    if (!this.meta.notes.includes(idx)) { this.meta.notes.push(idx); saveMeta(this.meta); }
+    this.audio.burst({ type: 'bandpass', freq: 2500, freq1: 1200, q: 1, gain: 0.25, attack: 0.05, decay: 0.3 });
+    await this.choose({ title: n.title, subtitle: n.text, options: [], closable: true, paper: true, closeLabel: 'Сложить записку', footer: `Записок найдено: ${this.meta.notes.length} из ${NOTES.length}` });
+  }
+
   // Бестиарий: карточки тварей, открытые после первого убийства.
   async openCodex() {
     this.hud.menu.classList.add('hidden');

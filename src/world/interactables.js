@@ -361,6 +361,41 @@ export class Coffin extends Interactable {
   }
 }
 
+// Записка на земле: светящийся пергамент.
+export class Note extends Interactable {
+  constructor(game, pos, onRead) {
+    super(game, pos, { radius: 1.8, prompt: 'E — прочесть записку' });
+    this.onRead = onRead;
+    const c = document.createElement('canvas');
+    c.width = 64; c.height = 80;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#c8b48a'; ctx.fillRect(2, 2, 60, 76);
+    ctx.strokeStyle = 'rgba(60,30,20,0.7)'; ctx.lineWidth = 1;
+    for (let y = 12; y < 72; y += 6) { ctx.beginPath(); ctx.moveTo(8, y); ctx.lineTo(56 - Math.random() * 10, y); ctx.stroke(); }
+    ctx.fillStyle = 'rgba(120,0,10,0.8)'; ctx.beginPath(); ctx.arc(48, 66, 6, 0, 7); ctx.fill();
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+    const paper = new THREE.Mesh(new THREE.PlaneGeometry(0.32, 0.4), new THREE.MeshBasicMaterial({ map: t, color: new THREE.Color(1.6, 1.4, 1.1) }));
+    paper.rotation.x = -Math.PI / 2; paper.rotation.z = rand() * 6;
+    paper.position.y = 0.04;
+    this.group.add(paper);
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color: new THREE.Color(1.2, 0.9, 0.5), blending: THREE.AdditiveBlending, depthWrite: false }));
+    glow.scale.setScalar(1.3); glow.position.y = 0.2;
+    this.glow = glow;
+    this.group.add(glow);
+  }
+  update(dt) {
+    super.update(dt);
+    if (this.active) this.glow.material.opacity = 0.5 + Math.sin(this.t * 3) * 0.3;
+    if (this.active && rand() < 0.1) this.game.fx.sparks.spawn({ x: this.pos.x + randRange(-0.2, 0.2), y: 0.1, z: this.pos.z + randRange(-0.2, 0.2), vy: 0.6, life: 1.2, size: 0.03, size1: 0, r: 2, g: 1.6, b: 0.8, a: 1 });
+  }
+  interact() {
+    if (!this.active) return;
+    this.active = false;
+    this.group.visible = false;
+    this.onRead?.(this);
+  }
+}
+
 // Проклятый алтарь: чаша крови.
 export class BloodAltar extends RewardAltar {
   constructor(game, pos, onUse) {

@@ -339,6 +339,7 @@ export const SCENARIOS = {
   },
 
   menu: { steps: 30, menu: true },
+  note: { steps: 10, setup(g) { g.choiceUI.show({ title: 'Записка брата Ансельма', subtitle: 'Третья ночь. Луна не садится. Колокол собора бьёт полночь каждый час, и с каждым ударом из склепов выходит больше. Серебро кончается. Если найдёшь это — не ходи в собор один.', options: [], closable: true, paper: true, closeLabel: 'Сложить записку', footer: 'Записок найдено: 1 из 10' }); } },
   codex: { steps: 10, menu: true, setup(g) { g.meta.codex = { thrall: 41, stalker: 17, wolf: 9, butcher: 1 }; g.openCodex(); } },
   death: { steps: 120, setup(g) { g.player.damage(500, ahead(g, 2)); } },
 };

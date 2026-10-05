@@ -285,3 +285,8 @@ button.small { font-size: 18px; padding: 9px 34px; margin-top: 14px; letter-spac
 .menu .lore { margin: 22px 0 22px; }
 .menu .controls { margin-top: 20px; }
 .menu .metainfo { margin-top: 12px; }
+.choice.paper .csub { max-width: 640px; padding: 40px 54px; margin: 18px 0 10px; font-size: 25px; line-height: 1.5; color: #2a1a12; text-align: left;
+  background: radial-gradient(ellipse at 30% 20%, #e8d8b4, #c8b088 70%, #a88a5c); box-shadow: 0 10px 50px rgba(0,0,0,.8), inset 0 0 60px rgba(90, 50, 20, .55);
+  clip-path: polygon(1% 2%, 99% 0, 100% 97%, 96% 100%, 2% 99%, 0 60%); font-style: italic; }
+.choice.paper .ctitle { font-size: 40px; }
+.choice.paper .cards { display: none; }

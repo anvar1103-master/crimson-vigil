@@ -1,6 +1,7 @@
 // Зона ночи: волны → награда → врата с выбором пути. Плюс события (торговец, алтарь).
 import * as THREE from 'three';
-import { RewardAltar, HealingFont, Portal, Merchant, BloodAltar, Coffin } from '../world/interactables.js';
+import { RewardAltar, HealingFont, Portal, Merchant, BloodAltar, Coffin, Note } from '../world/interactables.js';
+import { NOTES } from './codex.js';
 import { rollRelics, rollWeaponUpgrades, RELICS } from './relics.js';
 import { REWARDS, MODIFIERS, BIOMES } from './run.js';
 import { pick, randInt, rand } from '../core/util.js';
@@ -87,7 +88,19 @@ export class ZoneController {
       });
       // Случайное событие: запечатанный гроб где-то на карте.
       if (rand() < (game.params?.has('coffin') ? 1 : 0.35)) this.spawnCoffin();
+      if (rand() < (game.params?.has('note') ? 1 : 0.4)) this.spawnNote();
     }
+  }
+
+  // Записка охотника — сперва непрочитанные.
+  spawnNote() {
+    const game = this.game, L = game.level;
+    const read = new Set(game.meta.notes || []);
+    const pool = NOTES.map((n, i) => i).filter((i) => !read.has(i));
+    const idx = pool.length ? pick(pool) : Math.floor(rand() * NOTES.length);
+    const base = pick(L.spawnPoints).clone().multiplyScalar(0.55);
+    L.resolveCircle(base, 0.8, 0.5);
+    this.items.push(new Note(game, base, () => game.readNote(idx)));
   }
 
   spawnCoffin() {

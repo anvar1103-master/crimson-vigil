@@ -20,8 +20,9 @@ export class ChoiceUI {
   get open() { return !!this.resolve; }
 
   // options: [{ name, desc, glyph, rarity, price?, disabled? }]
-  show({ title, subtitle = '', options, closable = false, footer = '', wide = false, closeLabel = 'Уйти' }) {
+  show({ title, subtitle = '', options, closable = false, footer = '', wide = false, closeLabel = 'Уйти', paper = false }) {
     this.el.classList.toggle('compact', wide);
+    this.el.classList.toggle('paper', paper);
     this.options = options;
     this.closable = closable;
     this.el.innerHTML = `
@@ -36,7 +37,7 @@ export class ChoiceUI {
           <div class="desc">${o.desc}</div>
           ${o.price !== undefined ? `<div class="price">${o.price ? `◉ ${o.price}` : 'бесплатно'}</div>` : ''}
         </div>`).join('')}</div>
-      ${closable ? '<button class="leave">${closeLabel}</button>' : ''}
+      ${closable ? `<button class="leave">${closeLabel}</button>` : ''}
       <div class="cfoot">${footer}</div>`;
     this.el.querySelectorAll('.card').forEach((c) => c.addEventListener('click', () => this.pick(Number(c.dataset.i))));
     this.el.querySelector('.leave')?.addEventListener('click', () => this.finish(null));
