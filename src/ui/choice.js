@@ -64,17 +64,18 @@ export class Transition {
   constructor(root) {
     this.el = document.createElement('div');
     this.el.className = 'fade';
-    this.el.innerHTML = '<div class="tc"><div class="tc-pre"></div><div class="tc-title"></div><div class="tc-sub"></div></div>';
+    this.el.innerHTML = '<div class="tc"><div class="tc-pre"></div><div class="tc-title"></div><div class="tc-sub"></div><div class="tc-lore"></div></div>';
     root.append(this.el);
   }
-  async run(midway, { pre = '', title = '', sub = '' } = {}) {
+  async run(midway, { pre = '', title = '', sub = '', lore = '' } = {}) {
+    this.el.querySelector('.tc-lore').innerHTML = lore;
     this.el.querySelector('.tc-pre').textContent = pre;
     this.el.querySelector('.tc-title').textContent = title;
     this.el.querySelector('.tc-sub').textContent = sub;
     this.el.classList.add('on');
     await wait(650);
     await midway();
-    await wait(title ? 1500 : 200);
+    await wait(lore ? 9000 : title ? 1500 : 200);
     this.el.classList.remove('on');
   }
 }

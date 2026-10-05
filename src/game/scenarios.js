@@ -2,6 +2,7 @@
 // Игра делает N шагов по 1/60 с с заскриптованным вводом и рендерит один кадр.
 import * as THREE from 'three';
 import { RELICS } from './relics.js';
+import { PROLOGUE } from './game.js';
 
 const V3 = THREE.Vector3;
 
@@ -46,6 +47,19 @@ export const SCENARIOS = {
       g.player.teleport(p, Math.atan2(-(c.pos.x - p.x), -(c.pos.z - p.z)));
       g.player.pitch = -0.35;
     },
+  },
+  // Пролог первой ночи.
+  prologue: {
+    steps: 10,
+    setup(g) {
+      const t = g.transitionUI; t.run(() => new Promise(() => {}), { pre: 'Ночь первая', title: 'Деревня Холлоумир', sub: 'Колокол бьёт полночь', lore: PROLOGUE });
+      t.el.style.transition = 'none'; t.el.querySelector('.tc-lore').style.animation = 'none'; t.el.querySelector('.tc-lore').style.opacity = 1;
+    },
+  },
+  // Элиты с аурами.
+  elites: {
+    steps: 120,
+    setup(g) { for (let i = 0; i < 3; i++) { const e = g.enemies.spawn('stalker', ahead(g, 6, (i - 1) * 2.2), { elite: true }); e.speed = 0; e.lungeCd = 1e9; e.attackCd = 1e9; } },
   },
   // Двустволка: залп по толпе отродий.
   shotgun: {
@@ -264,6 +278,8 @@ export const SCENARIOS = {
       g.botUsed ||= new WeakSet();
       const item = g.zones.items.find((it) => it.active && !g.botUsed.has(it));
       if (item) {
+        if (g.botItem !== item) { g.botItem = item; g.botItemT = 0; }
+        if (++g.botItemT > 600) { console.log(`BOT GAVE UP ${item.constructor.name} at ${item.pos.x.toFixed(1)},${item.pos.z.toFixed(1)}`); g.botUsed.add(item); return inp; }
         const d = steer(item.pos, 1.2);
         if (d < 1.8 && i % 20 === 0) { inp.interact = true; g.botUsed.add(item); }
         return inp;

@@ -98,18 +98,28 @@ export class ZoneController {
     const read = new Set(game.meta.notes || []);
     const pool = NOTES.map((n, i) => i).filter((i) => !read.has(i));
     const idx = pool.length ? pick(pool) : Math.floor(rand() * NOTES.length);
-    const base = pick(L.spawnPoints).clone().multiplyScalar(0.55);
-    L.resolveCircle(base, 0.8, 0.5);
+    const base = this.reachableSpot(pick(L.spawnPoints), 0.5, 0.8);
     this.items.push(new Note(game, base, () => game.readNote(idx)));
+  }
+
+  // Точка между краем арены и её центром, к которой есть прямой проход от центра:
+  // предмет не окажется замурованным среди деревьев или за фасадом.
+  reachableSpot(from, t, radius) {
+    const L = this.game.level, c = L.rewardPoint;
+    for (let k = t; k <= 1; k += 0.15) {
+      const p = c.clone().lerp(from, 1 - k).setY(0);
+      L.resolveCircle(p, radius, 0.5);
+      const a = c.clone().setY(1), b = p.clone().setY(1);
+      if (L.lineOfSight(a, b)) return p;
+    }
+    return c.clone().setY(0).add(new THREE.Vector3(2, 0, 0));
   }
 
   spawnCoffin() {
     const game = this.game, L = game.level;
     const pts = L.spawnPoints.filter((p) => p.distanceTo(L.playerStart) > 8);
     const base = pick(pts.length ? pts : L.spawnPoints).clone();
-    // Чуть внутрь арены от точки появления.
-    const pos = base.multiplyScalar(0.78);
-    L.resolveCircle(pos, 1.2, 0.5);
+    const pos = this.reachableSpot(base, 0.3, 1.2);
     const c = new Coffin(game, pos, (it) => {
       if (rand() < 0.6) {
         game.coins.burst(it.pos.clone().setY(0.8), 30, 2);

@@ -226,6 +226,10 @@ button.small { font-size: 18px; padding: 9px 34px; margin-top: 14px; letter-spac
 .fade .tc-title { font-family: var(--font-ui); font-size: 70px; letter-spacing: 10px; margin: 6px 0; text-shadow: 0 0 30px rgba(190, 20, 30, .9); }
 .fade .tc-sub { font-family: var(--font-text); font-style: italic; font-size: 24px; color: var(--blood-bright); }
 .fade.on .tc { animation: tcin 1.6s ease-out; }
+.fade .tc-lore { max-width: 640px; margin: 28px auto 0; font-family: var(--font-text); font-style: italic; font-size: 19px; line-height: 1.6; color: var(--bone-dim); opacity: 0; }
+.fade.on .tc-lore { animation: lorein 1.4s ease-out 1.6s forwards; }
+.fade .tc-lore p { margin: 0 0 12px; }
+@keyframes lorein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes tcin { 0% { opacity: 0; letter-spacing: 24px; } 40% { opacity: 1; } }
 
 /* ——— Реликвии в HUD ——— */

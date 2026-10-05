@@ -41,6 +41,10 @@ function countLights(scene) {
   return n;
 }
 
+// Пролог первой ночи — показывается один раз, пока собирается мир.
+export const PROLOGUE = '<p>Сорок лет луна не белела над Холлоумиром. Кровь взошла на небо — и с ней пробудился Суверен, древний властелин замка Морвейн.</p>'
+  + '<p>Орден Серебряного Терна прислал последнего охотника. Шесть патронов в барабане, арбалет за спиной и одна ночь до рассвета.</p>';
+
 export class Game {
   constructor(container, uiRoot) {
     this.container = container;
@@ -254,7 +258,7 @@ export class Game {
       this.hud.death.classList.add('hidden');
       this.state = 'transition';
       const run = new Run();
-      await this.transitionUI.run(async () => { this.setupRun(run, first); }, { pre: 'Ночь первая', title: BIOMES[0].name, sub: 'Колокол бьёт полночь' });
+      await this.transitionUI.run(async () => { this.setupRun(run, first); }, { pre: 'Ночь первая', title: BIOMES[0].name, sub: 'Колокол бьёт полночь', lore: this.meta.runs === 0 ? PROLOGUE : '' });
       return;
     }
     this.setupRun(new Run(), first);
@@ -289,7 +293,7 @@ export class Game {
     if (this.meta.runs < 2) {
       setTimeout(() => this.hud.hints([
         '<b>ЛКМ</b> выстрел · <b>ПКМ</b> прицеливание · <b>R</b> перезарядка',
-        '<b>1</b> / <b>2</b> или колесо — револьвер и арбалет',
+        '<b>1</b> / <b>2</b> / <b>3</b> или колесо — револьвер, арбалет и двустволка',
         '<b>Q</b> рывок-уклонение · <b>Shift</b> бег · <b>Space</b> прыжок через ударные волны',
         '<b>G</b> или колёсико — фляга святой воды: лужа огня жжёт нечисть',
         '<b>E</b> — алтари, торговец и дары · выстрел в голову наносит больше урона',

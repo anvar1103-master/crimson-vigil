@@ -123,6 +123,17 @@ export class Enemy {
   updateFlash(dt) {
     this.flash = Math.max(0, this.flash - dt * 7);
     for (const m of this.materials) m.userData.flash.value = this.flash;
+    // Аура элиты и боссов: искры цвета аффикса поднимаются от тела.
+    if ((this.elite || this.boss) && this.alive && Math.random() < (this.boss ? 0.8 : 0.45)) {
+      const rim = this.materials[0]?.userData.rim.value;
+      const c = this.center();
+      const s = this.sizeScale || 1;
+      this.game.fx.sparks.spawn({
+        x: c.x + (Math.random() - 0.5) * 0.7 * s, y: c.y + (Math.random() - 0.6) * 1.4 * s, z: c.z + (Math.random() - 0.5) * 0.7 * s,
+        vy: 0.8 + Math.random(), life: 0.9, size: 0.05 * s, size1: 0,
+        r: (rim?.x ?? 0.5) * 5, g: (rim?.y ?? 0.1) * 5, b: (rim?.z ?? 0.1) * 5, a: 1, drag: 0.5,
+      });
+    }
   }
 
   // Пересечение луча со сферами попадания. Возвращает {t, part, point} или null.

@@ -64,9 +64,14 @@ powershell -File tools/shot.ps1 -Query "scenario=overview" -Name overview
 - Появление боссов с полосами кино и крупным именем; реликвии и лучшая серия на экране итогов.
 - События: запечатанный гроб (сокровище или засада), записки охотников (10 обрывков лора).
 - Меню: силуэт Гидеона Вейла, Бестиарий Ордена (10 записей), «Кровавая ночь» после первой победы.
+- Третье оружие — двустволка «Литания» (клавиша 3): 9 картечин, переломное заряжание; улучшения «Серебряная дробь», «Чок-сужение».
+- Ауры элиты и боссов: искры цвета аффикса — элиту видно издалека.
+- Пролог первой ночи на титульной карточке (только в самом первом забеге).
+- Гробы и записки ставятся только в достижимые места (проверка прохода от центра арены).
+- Регрессия: бот (god) прошёл деревню, лес с боссом и собор без ошибок.
 
 ## Полезные сценарии (`?scenario=`)
 overview, vampire, combat, hit, kill, reload, reloadpose, aim, hurt, death, waves, menu, gun, gunlab
 (&view=side|front|right&weapon=1&hands), crossbow, crossbowhit, lightning, reward, portals, cards, bot, flow
-(&god &hp=100 &startbiome=N &bossfight &event=merchant|altar &audio), bestiary (&boss=…), firstlook, cage, facade.
+(&god &hp=100 &startbiome=N &bossfight &event=merchant|altar &audio), bestiary (&boss=…), firstlook, cage, facade, shotgun, elites, prologue, flask, combo, coffin, note, codex.
 Добавьте `&biome=village|forest|cathedral|crypt|castle|throne`, чтобы выбрать локацию.
