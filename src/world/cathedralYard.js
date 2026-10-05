@@ -228,6 +228,16 @@ function buildFacade(L, M) {
   L.add(extrudeGeo(archRingShape(doorW + 0.7, 0.4, doorSpring, rf), 0.4), M.trim, mat4(0, 0, -18.15));
   L.add(boxGeo(7.5, 0.14, 1.4, rng), M.trim, mat4(0, 0.07, -17.8), { cast: false });
 
+  // Святые в нишах по сторонам портала и высокие витражные окна над ними.
+  for (const sx of [-1, 1]) {
+    L.add(extrudeGeo(archShape(1.5, 2.4, 0.85), 0.05), M.black, mat4(sx * 4.7, 0.9, -18.47), { cast: false });
+    L.add(extrudeGeo(archRingShape(1.5, 0.22, 2.4, 0.85), 0.3), M.trim, mat4(sx * 4.7, 0.9, -18.35));
+    Q.saint(L, M, sx * 4.7, 0.9, -18.1, 0, 1.0);
+    P.candles(L, M, sx * 4.7 + 0.5, 0, -17.6, 4, 0.2);
+    Q.stainedWindow(L, sx * 5.4, 7.6, -18.48, 0, 1.3, 3.0, [1.7, 1.2, 1.2]);
+    L.add(extrudeGeo(archRingShape(1.3, 0.2, 3.0, 0.85), 0.25), M.trim, mat4(sx * 5.4, 7.6, -18.4));
+  }
+
   // Внутренность портала: тёплое свечение изнутри собора.
   const inner = new THREE.Mesh(new THREE.PlaneGeometry(doorW, 7.2), withFog(new THREE.MeshBasicMaterial({
     color: 0xffffff, map: interiorGlowTex(), transparent: false,

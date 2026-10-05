@@ -413,6 +413,29 @@ export function gargoyle(L, M, x, y, z, ry = 0, s = 1) {
   add(new THREE.ConeGeometry(0.06 * s, 0.12 * s, 4), 0, 0.85, 0.5, Math.PI / 2);
 }
 
+// Каменный святой в нише: постамент, ниспадающая ряса, капюшон, молитвенно сложенные руки, нимб.
+export function saint(L, M, x, y, z, ry = 0, s = 1) {
+  const rng = L.rng;
+  const at = (lx, ly, lz, rx = 0, rry = 0, rz = 0) => {
+    const [wx, , wz] = local(x, z, ry, lx * s, 0, lz * s);
+    return mat4(wx, y + ly * s, wz, rx, ry + rry, rz);
+  };
+  L.add(boxGeo(0.9 * s, 0.5 * s, 0.7 * s, rng), M.trim, at(0, 0.25, 0));
+  const robe = new THREE.LatheGeometry([[0.36, 0], [0.33, 0.4], [0.26, 1.0], [0.2, 1.45], [0.14, 1.62], [0.02, 1.66]].map(([r, h]) => new THREE.Vector2(r * s, h * s)), 14);
+  // Складки: лёгкая волна по окружности.
+  const p = robe.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const a = Math.atan2(p.getX(i), p.getZ(i)), k = 1 + Math.sin(a * 7) * 0.05 * (1 - p.getY(i) / (1.7 * s));
+    p.setX(i, p.getX(i) * k); p.setZ(i, p.getZ(i) * k);
+  }
+  robe.computeVertexNormals();
+  L.add(robe, M.trim, at(0, 0.5, 0));
+  L.add(new THREE.SphereGeometry(0.13 * s, 10, 8), M.trim, at(0, 2.27, 0.03));
+  L.add(new THREE.ConeGeometry(0.19 * s, 0.38 * s, 10, 1, true), M.trim, at(0, 2.32, -0.02));
+  L.add(boxGeo(0.12 * s, 0.22 * s, 0.1 * s, rng), M.trim, at(0, 1.75, 0.24, -0.4));
+  L.add(new THREE.TorusGeometry(0.24 * s, 0.025 * s, 6, 20), M.trim, at(0, 2.35, -0.12));
+}
+
 // Подвесная клетка со скелетом; качается на цепи.
 export function hangingCage(L, M, x, y, z) {
   const g = new THREE.Group();
