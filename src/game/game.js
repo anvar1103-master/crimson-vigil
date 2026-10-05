@@ -13,6 +13,7 @@ import '../world/gen/forest.js';
 import '../world/gen/cathedral.js';
 import '../world/gen/castle.js';
 import { CoinShower } from '../world/interactables.js';
+import { Ambience } from '../world/ambience.js';
 import { Player } from './player.js';
 import { ViewModel } from './viewmodel.js';
 import { Revolver } from './weapons/revolver.js';
@@ -133,6 +134,8 @@ export class Game {
     this.level = buildBiomeLevel(this.scene, biomeId, seed, zone);
     this.applyAtmosphere(this.level.atmosphere);
     if (this.weather) this.weather.set(this.level.atmosphere);
+    this.ambience?.dispose();
+    this.ambience = new Ambience(this, this.level.ambient || {});
   }
 
   applyAtmosphere(a) {
@@ -559,6 +562,7 @@ export class Game {
       this.enemies.update(dtw);
       this.hazards.update(dtw);
       this.weather.update(dtw);
+      if (this.fx) this.ambience.update(dtw);
       this.coins.update(dtw);
       this.zones.update(dtw);
       this.fx.update(dtw);

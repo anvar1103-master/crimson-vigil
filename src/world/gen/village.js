@@ -6,6 +6,7 @@ import * as P from '../props.js';
 import * as Q from '../props2.js';
 import { registerBiome } from '../biomes.js';
 import { addGrass, groundMask } from '../grass.js';
+import { addPuddles } from '../ambience.js';
 
 const V3 = THREE.Vector3;
 
@@ -136,6 +137,8 @@ export function buildVillage(scene, seed = 1) {
     area: 34, count: 4000, seed: seed + 5, scale: [0.25, 0.65], tint: 0xc8b8a0,
     mask: groundMask(L, [{ x: 0, z: -1, r: 10.3 }, { x0: -2.8, z0: -40, x1: 2.8, z1: 40 }, { x0: -40, z0: -3.9, x1: 40, z1: 1.9 }]),
   });
+  addPuddles(L, { count: 22, area: 12, seed: seed + 9, mask: (x, z) => Math.hypot(x, z + 1) < 9.5 && groundMask(L)(x, z) });
+  L.ambient = { ash: 0.8, embersAir: 0.6, bats: 7 };
   L.rewardPoint = new V3(0, 0, 4.5);
   L.bossPoint = new V3(0, 0, -12);
   L.exitPoints = [

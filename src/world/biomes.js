@@ -10,7 +10,7 @@ export const ATMOS = {
     skyHorizon: 0x82301a, skyZenith: 0x0a0405, fogColor: 0x1e0d0a, fogDensity: 0.03,
     mistColor: [0.08, 0.045, 0.035], mistGround: 0.08,
     moonDir: new V3(-0.5, 0.45, -0.75).normalize(), moonLight: 0xe0c8c0, moonIntensity: 1.0,
-    hemiSky: 0x6a3a30, hemiGround: 0x0c0605, rain: 0.85, lightning: true,
+    hemiSky: 0x6a3a30, hemiGround: 0x0c0605, rain: 0.85, lightning: true, godRays: 0.55,
   },
   forest: {
     ...yardAtmosphere,
@@ -19,7 +19,7 @@ export const ATMOS = {
     moonDir: new V3(0.3, 0.55, -0.8).normalize(), moonLight: 0xc8d8e0, moonIntensity: 1.1,
     hemiSky: 0x3a4a48, hemiGround: 0x060807, rain: 0, lightning: false,
   },
-  cathedral: { ...yardAtmosphere },
+  cathedral: { ...yardAtmosphere, godRays: 0.7 },
   castle: {
     ...yardAtmosphere,
     skyHorizon: 0x6a1030, skyZenith: 0x07020b, fogColor: 0x150a16, fogDensity: 0.026,

@@ -7,6 +7,7 @@ import * as Q from '../props2.js';
 import { registerBiome } from '../biomes.js';
 import { withFog } from '../../core/fog.js';
 import { scatter, corridors } from './village.js';
+import { addPuddles } from '../ambience.js';
 
 const V3 = THREE.Vector3;
 
@@ -171,6 +172,8 @@ export function buildCourtyard(scene, seed = 1) {
   }
 
   L.flush();
+  addPuddles(L, { count: 14, area: 16, seed: seed + 2, mask: (x, z) => Math.hypot(x, z + 3) > 4 && L.colliders.every((c) => c.type === 'circle' ? Math.hypot(x - c.x, z - c.z) > c.r + 1 : !(x > c.minX - 1 && x < c.maxX + 1 && z > c.minZ - 1 && z < c.maxZ + 1)) });
+  L.ambient = { bats: 12, ash: 0.25, embersAir: 0.3 };
   L.rewardPoint = new V3(0, 0, 5);
   L.bossPoint = new V3(0, 0, -14);
   L.exitPoints = [
@@ -223,6 +226,7 @@ export function buildThroneHall(scene, seed = 1) {
   for (const sx of [-1, 1]) for (const z of [-4.5, 9.5]) brazierStand(L, M, sx * 11, z, 1.0);
 
   L.flush();
+  L.ambient = { dust: 0.8 };
   L.rewardPoint = new V3(0, 0, 8);
   L.bossPoint = new V3(0, 2, -18);
   L.exitPoints = [{ pos: new V3(0, 0, -13), yaw: 0 }];

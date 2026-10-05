@@ -6,6 +6,7 @@ import * as P from './props.js';
 import { roseWindowTex, lancetGlassTex } from '../core/textures.js';
 import { withFog } from '../core/fog.js';
 import { addGrass, groundMask } from './grass.js';
+import { addPuddles } from './ambience.js';
 
 const V3 = THREE.Vector3;
 
@@ -150,6 +151,10 @@ export function buildCathedralYard(scene, seed = 2024) {
 
   L.flush();
   L.colliders = L.colliders.filter((c) => !(c.type === 'circle' && (Math.abs(c.x) > 21 || Math.abs(c.z) > 21)));
+  // Лужи на дорожке и площади перед собором.
+  const pavedOnly = (x, z) => ((Math.abs(x) < 2.3 && z > -6 && z < 18) || (Math.abs(x) < 8.3 && z > -18 && z < -6)) && groundMask(L)(x, z);
+  addPuddles(L, { count: 16, area: 18, seed: seed + 4, mask: pavedOnly });
+  L.ambient = { bats: 8, spores: 0.25 };
   // Кладбищенская трава: всё, что не замощено.
   addGrass(L, {
     area: 36, count: 6000, seed: seed + 11, scale: [0.28, 0.75], tint: 0xc0b8a8,

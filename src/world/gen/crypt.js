@@ -91,6 +91,7 @@ export function buildCrypt(scene, seed = 1) {
   Q.bones(L, M, 12, -15, 6);
 
   L.flush();
+  L.ambient = { dust: 0.9 };
   L.rewardPoint = new V3(0, 0, 4);
   L.bossPoint = new V3(0, 0, -11);
   L.exitPoints = [
