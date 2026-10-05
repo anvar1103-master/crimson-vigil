@@ -5,6 +5,7 @@ import { boxGeo, cylGeo, extrudeGeo, archPoints, archRingShape, archShape, mat4 
 import * as P from './props.js';
 import { roseWindowTex, lancetGlassTex } from '../core/textures.js';
 import { withFog } from '../core/fog.js';
+import { addGrass, groundMask } from './grass.js';
 
 const V3 = THREE.Vector3;
 
@@ -149,6 +150,11 @@ export function buildCathedralYard(scene, seed = 2024) {
 
   L.flush();
   L.colliders = L.colliders.filter((c) => !(c.type === 'circle' && (Math.abs(c.x) > 21 || Math.abs(c.z) > 21)));
+  // Кладбищенская трава: всё, что не замощено.
+  addGrass(L, {
+    area: 36, count: 6000, seed: seed + 11, scale: [0.28, 0.75], tint: 0xc0b8a8,
+    mask: groundMask(L, [{ x0: -2.7, z0: -6, x1: 2.7, z1: 19.5 }, { x0: -8.5, z0: -18.5, x1: 8.5, z1: -6 }, { x0: -16.5, z0: -18.5, x1: -11, z1: 19.5 }, { x0: -9, z0: -40, x1: 9, z1: -18 }]),
+  });
 
   L.playerStart.set(0, 0, 10);
   L.rewardPoint = new V3(0, 0, -2.5);

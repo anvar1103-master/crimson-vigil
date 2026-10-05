@@ -6,6 +6,7 @@ import * as P from '../props.js';
 import * as Q from '../props2.js';
 import { registerBiome } from '../biomes.js';
 import { scatter, corridors } from './village.js';
+import { addGrass, groundMask } from '../grass.js';
 
 const V3 = THREE.Vector3;
 
@@ -93,6 +94,8 @@ export function buildForest(scene, seed = 1) {
   for (const s of scatter(L, 6, 4, 18, avoid)) Q.mushrooms(L, M, s.x, s.z, 5);
 
   L.flush();
+  // Густой подлесок по всей поляне и за её краем.
+  addGrass(L, { area: 30, count: 9000, mask: groundMask(L), scale: [0.3, 0.85], tint: 0xb8c0a0, seed: seed + 3 });
   // Деревья по кольцу ставят коллайдеры-круги; поляна остаётся круглой благодаря им.
   L.rewardPoint = new V3(0, 0, 5);
   L.bossPoint = new V3(0, 0, -12);

@@ -141,6 +141,7 @@ export class Weather {
       if (d >= 0 && d < 0.25) flash = Math.max(flash, k * (1 - d / 0.25));
     }
     if (this.flashSeq.length && game.time - this.flashSeq[this.flashSeq.length - 1][0] > 0.3) this.flashSeq = [];
+    this.flashNow = flash;
     game.sky.userData.uniforms.uFlash.value = flash * 0.9;
     this.bolt.intensity = flash * 3.5;
     game.post.grade.uFlash.value = flash * 0.06;

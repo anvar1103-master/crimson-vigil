@@ -599,10 +599,25 @@ export class Game {
       this.audio.updateListener(this.camera.position, f, this.camera.up);
     }
     if (render) {
+      this.updateGodRays();
       this.fx.setScale(this.renderer.domElement.height, this.camera.fov);
       this.post.grade.uTime.value = this.time;
       this.post.render(dt);
     }
+  }
+
+  // Экранная позиция луны для лучей; сила зависит от того, насколько луна в кадре.
+  updateGodRays() {
+    const a = this.level.atmosphere, u = this.post.rays;
+    if (a.indoor) { u.uIntensity.value = 0; return; }
+    const cam = this.camera;
+    const p = this._sunV ||= new THREE.Vector3();
+    p.copy(a.moonDir).multiplyScalar(400).add(cam.position).project(cam);
+    const facing = cam.getWorldDirection(this._dirV ||= new THREE.Vector3()).dot(a.moonDir);
+    u.uSun.value.set(p.x * 0.5 + 0.5, p.y * 0.5 + 0.5);
+    const edge = Math.max(Math.abs(p.x), Math.abs(p.y));
+    const vis = facing > 0 ? (1 - THREE.MathUtils.smoothstep(edge, 1.0, 1.8)) * THREE.MathUtils.smoothstep(facing, 0.1, 0.6) : 0;
+    u.uIntensity.value = vis * (a.godRays ?? 1) * (1 + this.weather.flashNow * 2);
   }
 
   // Ауры реликвий (чеснок) и удары молний в грозу.

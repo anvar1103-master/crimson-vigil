@@ -59,6 +59,50 @@ const GradeShader = {
     }`,
 };
 
+// Лучи света от луны: радиальное размытие ярких участков к экранной позиции луны.
+// Силуэты деревьев и башен «режут» свет — получаются сумеречные лучи.
+const GodRaysShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    uSun: { value: new THREE.Vector2(0.5, 0.5) },
+    uIntensity: { value: 0 },
+    uTint: { value: new THREE.Color(1.0, 0.75, 0.7) },
+    uAspect: { value: 16 / 9 },
+  },
+  vertexShader: /* glsl */`
+    varying vec2 vUv;
+    void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }`,
+  fragmentShader: /* glsl */`
+    #define SAMPLES 48
+    uniform sampler2D tDiffuse;
+    uniform vec2 uSun;
+    uniform float uIntensity, uAspect;
+    uniform vec3 uTint;
+    varying vec2 vUv;
+    void main() {
+      vec4 base = texture2D( tDiffuse, vUv );
+      if ( uIntensity <= 0.001 ) { gl_FragColor = base; return; }
+      vec2 delta = ( vUv - uSun ) * ( 0.95 / float( SAMPLES ) );
+      // Дизеринг стартовой точки убирает «ступеньки» лучей.
+      float jitter = fract( sin( dot( vUv * 731.7, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 );
+      vec2 uv = vUv - delta * jitter;
+      float illum = 1.0;
+      vec3 acc = vec3( 0.0 );
+      for ( int i = 0; i < SAMPLES; i ++ ) {
+        uv -= delta;
+        vec3 s = texture2D( tDiffuse, clamp( uv, 0.001, 0.999 ) ).rgb;
+        // Источник лучей — только небо вокруг луны, а не фонари и факелы.
+        float nearSun = 1.0 - smoothstep( 0.0, 0.42, length( ( uv - uSun ) * vec2( uAspect, 1.0 ) ) );
+        float l = max( dot( s, vec3( 0.3, 0.59, 0.11 ) ) - 0.12, 0.0 ) * nearSun;
+        acc += min( s, vec3( 2.0 ) ) * l * illum;
+        illum *= 0.962;
+      }
+      vec2 d = ( vUv - uSun ) * vec2( uAspect, 1.0 );
+      float falloff = 1.0 - smoothstep( 0.1, 1.2, length( d ) );
+      gl_FragColor = vec4( base.rgb + acc * ( 0.028 * uIntensity * falloff ) * uTint, base.a );
+    }`,
+};
+
 export function createPost(renderer, scene, camera, vmScene, vmCamera, { samples = 4, bloom: useBloom = true } = {}) {
   const size = renderer.getSize(new THREE.Vector2());
   const target = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples });
@@ -71,17 +115,21 @@ export function createPost(renderer, scene, camera, vmScene, vmCamera, { samples
   bloom.enabled = useBloom;
   const output = new OutputPass();
   const grade = new ShaderPass(GradeShader);
+  const rays = new ShaderPass(GodRaysShader);
+  rays.enabled = useBloom;
   composer.addPass(worldPass);
+  composer.addPass(rays);
   composer.addPass(vmPass);
   composer.addPass(bloom);
   composer.addPass(output);
   composer.addPass(grade);
   return {
-    composer, bloom, grade: grade.uniforms,
+    composer, bloom, grade: grade.uniforms, rays: rays.uniforms,
     setSize(w, h, pr) {
       composer.setPixelRatio(pr);
       composer.setSize(w, h);
       grade.uniforms.uRes.value.set(w * pr, h * pr);
+      rays.uniforms.uAspect.value = w / h;
     },
     render(dt) { composer.render(dt); },
   };
