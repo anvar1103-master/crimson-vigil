@@ -101,7 +101,7 @@ export class Enemy {
     if (!this.alive) return;
     this.dotAcc += amount;
     if (this.takeDamage(amount, { dot: true })) this.game.onEnemyKilled(this, { headshot: false });
-    else if (this.dotAcc > 8) { this.game.hud.damageNumber(this.center(), this.dotAcc, false, true); this.dotAcc = 0; }
+    else if (this.dotAcc > 20) { this.game.hud.damageNumber(this.center(), this.dotAcc, false, true); this.dotAcc = 0; }
   }
 
   setState(s) { this.state = s; this.stateT = 0; }

@@ -18,6 +18,7 @@ import { Player } from './player.js';
 import { ViewModel } from './viewmodel.js';
 import { Revolver } from './weapons/revolver.js';
 import { Crossbow, Projectiles } from './weapons/crossbow.js';
+import { Flasks } from './weapons/flask.js';
 import { FX } from './fx.js';
 import { Combat } from './combat.js';
 import { EnemyManager } from './enemies/director.js';
@@ -106,6 +107,7 @@ export class Game {
     this.choiceUI = new ChoiceUI(uiRoot);
     this.transitionUI = new Transition(uiRoot);
     this.projectiles = new Projectiles(this);
+    this.flasks = new Flasks(this);
     this.weapons = [new Revolver(this), new Crossbow(this)];
     this.weaponIndex = 0;
     this.weapon = this.weapons[0];
@@ -225,6 +227,7 @@ export class Game {
 
   // ——— Поток забега ———
   resetWorld() {
+    this.flasks?.clear();
     this.enemies.clear();
     this.hazards.clear();
     this.fx.clear();
@@ -274,6 +277,7 @@ export class Game {
     this.run.gold += (up.tithe || 0) * 25;
     this.run.stats.dashCd *= 1 - (up.reflex || 0) * 0.1;
     if (up.arsenal) this.addRelic(rollRelics(this.run, 1)[0]);
+    this.flasks.reset();
     this.zones.enter(first);
     this.say('start', 0.6);
     if (this.meta.runs < 2) {
@@ -281,6 +285,7 @@ export class Game {
         '<b>ЛКМ</b> выстрел · <b>ПКМ</b> прицеливание · <b>R</b> перезарядка',
         '<b>1</b> / <b>2</b> или колесо — револьвер и арбалет',
         '<b>Q</b> рывок-уклонение · <b>Shift</b> бег · <b>Space</b> прыжок через ударные волны',
+        '<b>G</b> или колёсико — фляга святой воды: лужа огня жжёт нечисть',
         '<b>E</b> — алтари, торговец и дары · выстрел в голову наносит больше урона',
       ]), 3500);
     }
@@ -564,6 +569,7 @@ export class Game {
       if (playing && this.player.alive && this.switchTarget < 0) this.weapon.update(dtw, input);
       else this.weapon.update(dtw, emptyInput());
       this.projectiles.update(dtw);
+      this.flasks.update(dtw, playing && this.player.alive && this.switchTarget < 0 ? input : null);
       this.enemies.update(dtw);
       this.hazards.update(dtw);
       this.weather.update(dtw);

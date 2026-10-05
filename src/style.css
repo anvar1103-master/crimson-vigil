@@ -244,3 +244,7 @@ button.small { font-size: 18px; padding: 9px 34px; margin-top: 14px; letter-spac
 .zoneinfo .zn { font-size: 18px; letter-spacing: 4px; color: var(--bone); }
 .zoneinfo .zo { font-family: var(--font-text); font-style: italic; font-size: 17px; color: var(--bone-dim); }
 .zoneinfo .zm { font-family: var(--font-text); font-style: italic; font-size: 16px; color: var(--blood-bright); }
+.ammo .flasks { display: flex; gap: 6px; justify-content: flex-end; align-items: center; margin-top: 6px; }
+.ammo .flasks .fk { font-size: 13px; color: var(--bone-dim); margin-right: 4px; }
+.ammo .flasks i { width: 12px; height: 18px; border-radius: 40% 40% 50% 50%; border: 1px solid #6a88b0; background: rgba(10, 14, 20, .7); }
+.ammo .flasks i.on { background: radial-gradient(circle at 40% 60%, #d8f0ff, #5a9ae0 60%, #20406a); box-shadow: 0 0 8px rgba(120, 180, 255, .8); }

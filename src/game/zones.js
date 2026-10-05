@@ -56,6 +56,7 @@ export class ZoneController {
     this.zone = zone;
     run.zone = zone;
     this.state = 'fighting';
+    game.flasks?.refill();
     const depth = run.depth;
     // Модификаторы зоны.
     run.zoneMods = { enemySpeed: 1, gold: 1, count: 1 };

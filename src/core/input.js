@@ -6,7 +6,7 @@ export function emptyInput() {
     forward: false, back: false, left: false, right: false,
     sprint: false, jump: false, crouch: false,
     fire: false, firePressed: false, aim: false,
-    reload: false, interact: false, dash: false,
+    reload: false, interact: false, dash: false, grenade: false,
     weapon: 0, // 0 — без смены, 1/2 — слот, ±10 — колесо
     lookX: 0, lookY: 0,
   };
@@ -34,6 +34,7 @@ export class Input {
     addEventListener('blur', () => { this.keys.clear(); this.mouseDown = [false, false, false]; });
     addEventListener('mousedown', (e) => {
       if (!this.locked) return;
+      if (e.button === 1) e.preventDefault();
       this.mouseDown[e.button] = true;
       this.mousePressed[e.button] = true;
     });
@@ -73,6 +74,7 @@ export class Input {
     s.dash = pr.has('KeyQ') || pr.has('AltLeft');
     s.reload = pr.has('KeyR');
     s.interact = pr.has('KeyE') || pr.has('KeyF');
+    s.grenade = pr.has('KeyG') || this.mousePressed[1];
     s.fire = this.mouseDown[0];
     s.firePressed = this.mousePressed[0];
     s.aim = this.mouseDown[2];

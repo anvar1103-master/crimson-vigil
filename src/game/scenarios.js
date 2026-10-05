@@ -30,6 +30,12 @@ export const SCENARIOS = {
   cage: { steps: 30, setup(g) { g.player.teleport(new V3(-7, 0, 12.5), 0.75); g.player.pitch = 0.3; } },
   // Фасад собора вблизи.
   facade: { steps: 30, setup(g) { g.player.teleport(new V3(-2.2, 0, -14.2), 0.5); g.player.pitch = 0.12; } },
+  // Фляга святой воды по группе отродий.
+  flask: {
+    steps: 110,
+    setup(g) { g.flasks.reset(); for (let i = 0; i < 4; i++) { const e = g.enemies.spawn('thrall', ahead(g, 8, (i - 1.5) * 1.2)); e.speed = 0; e.attackCd = 1e9; } g.player.pitch = -0.05; },
+    input(g, i) { return i === 80 ? { grenade: true } : {}; },
+  },
   // Молния (кадр на пике вспышки).
   lightning: { steps: 14, setup(g) { g.weather.strike(); } },
 

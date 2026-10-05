@@ -73,6 +73,12 @@ export class ViewModel {
       (this.swayX.x * 0.8 + this.sprintBlend * 0.5) * k,
       (Math.sin(ph) * 0.02 * bob + this.swayX.x * 0.5) * k + this.sprintBlend * 0.25,
     );
+    // Бросок фляги: оружие ныряет вниз и в сторону.
+    if (this.flaskThrow > 0) {
+      this.flaskThrow = Math.max(0, this.flaskThrow - dt * 3);
+      const k = Math.sin(this.flaskThrow * Math.PI);
+      this.root.position.y -= k * 0.12; this.root.position.x += k * 0.05; this.root.rotation.z -= k * 0.4;
+    }
     this.muzzleLight.intensity = damp(this.muzzleLight.intensity, 0, 30, dt);
   }
 }

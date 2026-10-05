@@ -42,10 +42,12 @@ export class HUD {
       <div class="row"><svg class="cyl" viewBox="-50 -50 100 100"></svg>
         <svg class="boltico hidden" viewBox="0 0 120 30"><path d="M4 15 L22 6 L22 12 L100 12 L100 18 L22 18 L22 24 Z" class="tip"/><path d="M96 9 L116 4 L110 15 L116 26 L96 21 Z" class="fl"/></svg>
         <div class="count"><b>6</b><span>/6</span></div></div>
-      <div class="hint">R — перезарядка</div>`);
+      <div class="hint">R — перезарядка</div>
+      <div class="flasks"></div>`);
     this.hud.append(this.ammo);
     this.cyl = this.ammo.querySelector('.cyl');
     this.boltIco = this.ammo.querySelector('.boltico');
+    this.flasksEl = this.ammo.querySelector('.flasks');
     this.ammoNum = this.ammo.querySelector('.count b');
     this.ammoCap = this.ammo.querySelector('.count span');
     this.ammoHint = this.ammo.querySelector('.hint');
@@ -321,6 +323,13 @@ export class HUD {
       this.wname.textContent = w.name;
     }
 
+    // Фляги святой воды.
+    const fl = game.flasks;
+    if (fl && (fl.charges !== this.lastFlasks || fl.max !== this.lastFlaskMax)) {
+      this.lastFlasks = fl.charges; this.lastFlaskMax = fl.max;
+      const total = Math.max(fl.max + (game.run?.stats.extraFlasks || 0), fl.charges);
+      this.flasksEl.innerHTML = '<span class="fk">G</span>' + Array.from({ length: total }, (_, i) => `<i class="${i < fl.charges ? 'on' : ''}"></i>`).join('');
+    }
     // Прицел расходится от отдачи и движения.
     const move = Math.min(Math.hypot(p.vel.x, p.vel.z) / 7, 1);
     this.spread = damp(this.spread, 0, 7, dt);
