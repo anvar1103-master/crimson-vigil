@@ -26,7 +26,7 @@ export class Combat {
     }
     if (!stopped && wh) {
       game.fx.impact(wh.point, wh.normal);
-      game.audio.hitStone(wh.point);
+      if (!opts.quiet) game.audio.hitStone(wh.point);
       lastPoint = wh.point;
     }
     if (opts.explosive && lastPoint) this.explode(lastPoint, { radius: 3.2, damage: 45 * game.run.stats.damage });
@@ -94,7 +94,7 @@ export class Combat {
       if (stats.slowOnHit > 0) { enemy.slowT = 1.5; enemy.slowAmt = stats.slowOnHit; }
     }
     game.fx.blood(hit.point, dir, killed ? 1.5 : 1, { headshot });
-    game.audio.hitFlesh(hit.point, headshot);
+    if (!opts.quiet || killed) game.audio.hitFlesh(hit.point, headshot);
     game.audio.hitMarker(killed);
     game.hud.hitmarker(headshot, killed);
     game.hud.damageNumber(hit.point, dmg, headshot || crit);

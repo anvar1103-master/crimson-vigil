@@ -19,6 +19,7 @@ import { ViewModel } from './viewmodel.js';
 import { Revolver } from './weapons/revolver.js';
 import { Crossbow, Projectiles } from './weapons/crossbow.js';
 import { Flasks } from './weapons/flask.js';
+import { Shotgun } from './weapons/shotgun.js';
 import { FX } from './fx.js';
 import { Combat } from './combat.js';
 import { EnemyManager } from './enemies/director.js';
@@ -109,7 +110,7 @@ export class Game {
     this.transitionUI = new Transition(uiRoot);
     this.projectiles = new Projectiles(this);
     this.flasks = new Flasks(this);
-    this.weapons = [new Revolver(this), new Crossbow(this)];
+    this.weapons = [new Revolver(this), new Crossbow(this), new Shotgun(this)];
     this.weaponIndex = 0;
     this.weapon = this.weapons[0];
     this.vm.root.add(this.weapon.model);
@@ -267,7 +268,7 @@ export class Game {
     this.player.maxHealth = 100 + (this.meta.upgrades.vitality || 0) * 10;
     this.player.health = this.player.maxHealth;
     this.player.speedMul = 1;
-    this.weapons = [new Revolver(this), new Crossbow(this)];
+    this.weapons = [new Revolver(this), new Crossbow(this), new Shotgun(this)];
     this.vm.root.clear();
     this.weaponIndex = 0;
     this.weapon = this.weapons[0];
@@ -502,7 +503,7 @@ export class Game {
   // Смена оружия: опустить текущее, подменить модель, поднять новое.
   handleWeaponSwitch(dt, input) {
     let want = -1;
-    if (input.weapon === 1 || input.weapon === 2) want = input.weapon - 1;
+    if (input.weapon >= 1 && input.weapon <= 3) want = input.weapon - 1;
     else if (input.weapon === 10 || input.weapon === -10) want = (this.weaponIndex + 1) % this.weapons.length;
     if (want >= 0 && want !== this.weaponIndex && this.switchTarget < 0 && want < this.weapons.length) {
       this.switchTarget = want;

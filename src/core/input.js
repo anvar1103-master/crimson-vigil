@@ -80,6 +80,7 @@ export class Input {
     s.aim = this.mouseDown[2];
     if (pr.has('Digit1')) s.weapon = 1;
     else if (pr.has('Digit2')) s.weapon = 2;
+    else if (pr.has('Digit3')) s.weapon = 3;
     else if (this.wheel) s.weapon = this.wheel > 0 ? 10 : -10;
     s.lookX = this.dx * this.sensitivity;
     s.lookY = this.dy * this.sensitivity * (this.invertY ? -1 : 1);

@@ -47,6 +47,12 @@ export const SCENARIOS = {
       g.player.pitch = -0.35;
     },
   },
+  // Двустволка: залп по толпе отродий.
+  shotgun: {
+    steps: 64,
+    setup(g) { for (let i = 0; i < 5; i++) { const e = g.enemies.spawn('thrall', ahead(g, 5, (i - 2) * 0.9)); e.speed = 0; e.attackCd = 1e9; } },
+    input(g, i) { if (i === 1) return { weapon: 3 }; if (i === 40) g.player.pitch = -0.08; return i === 60 ? { firePressed: true } : {}; },
+  },
   // Фляга святой воды по группе отродий.
   flask: {
     steps: 110,

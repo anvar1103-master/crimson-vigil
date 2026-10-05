@@ -38,6 +38,8 @@ export const WEAPON_UPGRADES = [
   { id: 'rev_speed', weapon: 0, name: 'Быстрый барабан', glyph: '⟳', desc: 'Реквием: перезарядка вдвое быстрее.', apply: (g) => { g.weapons[0].reloadMul = (g.weapons[0].reloadMul || 1) * 2; } },
   { id: 'rev_fan', weapon: 0, name: 'Веерная стрельба', glyph: '⋙', desc: 'Реквием: скорострельность +35%.', apply: (g) => { g.weapons[0].fireDelay *= 0.74; } },
   { id: 'rev_silver', weapon: 0, name: 'Серебряная картечь', glyph: '⁂', desc: 'Реквием: пуля пробивает ещё одного врага, урон в голову +30%.', apply: (g) => { g.weapons[0].pierceBonus = (g.weapons[0].pierceBonus || 0) + 1; g.weapons[0].headMul += 0.75; } },
+  { id: 'sg_pellets', weapon: 2, name: 'Серебряная дробь', glyph: '⁙', desc: 'Литания: +4 картечины в выстреле.', apply: (g) => { g.weapons[2].pellets += 4; } },
+  { id: 'sg_choke', weapon: 2, name: 'Чок-сужение', glyph: '◎', desc: 'Литания: кучность выше, урон картечи +25%.', apply: (g) => { g.weapons[2].damage *= 1.25; g.weapons[2].choke = 0.6; } },
   { id: 'xb_heavy', weapon: 1, name: 'Тяжёлый натяжитель', glyph: '⚒', desc: 'Покаяние: урон +35%, отбрасывание сильнее.', apply: (g) => { g.weapons[1].damage *= 1.35; } },
   { id: 'xb_crank', weapon: 1, name: 'Механизм ворота', glyph: '⟲', desc: 'Покаяние: перезарядка на 40% быстрее.', apply: (g) => { g.weapons[1].reloadTime *= 0.6; } },
   { id: 'xb_holy', weapon: 1, name: 'Освящённый наконечник', glyph: '✺', desc: 'Покаяние: колья взрываются святым светом (радиус 3 м).', apply: (g) => { g.weapons[1].holy = true; } },

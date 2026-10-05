@@ -94,7 +94,7 @@ export class HUD {
       <button class="hardbtn small hidden">Кровавая ночь: выкл</button>
       <div class="controls">
         <span><b>WASD</b> движение</span><span><b>Мышь</b> прицел</span><span><b>ЛКМ</b> огонь</span><span><b>ПКМ</b> прицеливание</span>
-        <span><b>R</b> перезарядка</span><span><b>Shift</b> бег</span><span><b>Q</b> рывок</span><span><b>Space</b> прыжок</span><span><b>G</b> святая вода</span><span><b>E</b> действие</span>
+        <span><b>R</b> перезарядка</span><span><b>Shift</b> бег</span><span><b>Q</b> рывок</span><span><b>Space</b> прыжок</span><span><b>1/2/3</b> оружие</span><span><b>G</b> святая вода</span><span><b>E</b> действие</span>
       </div>
       <div class="foot">Гидеон Вейл · охотник на вампиров</div>
       <svg class="hero" viewBox="0 0 300 600" aria-hidden="true">
