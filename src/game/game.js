@@ -82,6 +82,8 @@ export class Game {
     this.input = new Input(renderer.domElement);
     this.input.disabled = !!this.scenario;
     this.input.onLockChange = (locked) => this.onLockChange(locked);
+    // Звук разрешён только после действия пользователя: первый клик в меню запускает музыку.
+    addEventListener('pointerdown', () => { this.audio.init(); this.audio.resume(); }, { once: true });
     // Если захват мыши сорвался (например, после экрана выбора), клик по экрану вернёт его.
     renderer.domElement.addEventListener('click', () => {
       if (this.state === 'playing' && !this.input.locked) this.input.lock();
@@ -601,6 +603,8 @@ export class Game {
     if (this.audio.ctx) {
       const f = this.camera.getWorldDirection(new THREE.Vector3());
       this.audio.updateListener(this.camera.position, f, this.camera.up);
+      const lvlId = this.level.atmosphere.indoor ? 'crypt' : (this.run.biomeDef?.id || 'cathedral');
+      this.audio.music?.update(dt, { combat: playing && this.enemies.alive > 0, boss: !!this.enemies.bossEnemy?.alive, biome: this.state === 'menu' ? 'cathedral' : lvlId });
     }
     if (render) {
       this.updateGodRays();

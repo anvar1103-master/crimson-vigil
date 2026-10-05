@@ -12,7 +12,46 @@ export class Ambience {
     this.group = new THREE.Group();
     game.scene.add(this.group);
     this.bats = [];
+    this.banks = [];
     if (cfg.bats) this.makeBats(cfg.bats);
+    if (cfg.fogBanks) this.makeFogBanks(cfg.fogBanks, cfg.fogBankRadius || [12, 30]);
+  }
+
+  // Полосы тумана: мягкие «занавесы» с шумом, всегда повёрнуты к камере, тают вблизи.
+  makeFogBanks(n, [r0, r1]) {
+    const mist = this.game.level.atmosphere.mistColor;
+    const mat = new THREE.ShaderMaterial({
+      transparent: true, depthWrite: false,
+      uniforms: { uTime: { value: 0 }, uColor: { value: new THREE.Color(mist[0] * 2.4, mist[1] * 2.4, mist[2] * 2.4) }, uCam: { value: new THREE.Vector3() } },
+      vertexShader: /* glsl */`
+        varying vec2 vUv; varying vec3 vW;
+        void main() { vUv = uv; vec4 w = modelMatrix * vec4( position, 1.0 ); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`,
+      fragmentShader: /* glsl */`
+        uniform float uTime; uniform vec3 uColor; uniform vec3 uCam;
+        varying vec2 vUv; varying vec3 vW;
+        float h( vec2 p ) { return fract( sin( dot( p, vec2( 127.1, 311.7 ) ) ) * 43758.5453 ); }
+        float n( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3.0 - 2.0 * f );
+          return mix( mix( h( i ), h( i + vec2( 1, 0 ) ), f.x ), mix( h( i + vec2( 0, 1 ) ), h( i + vec2( 1, 1 ) ), f.x ), f.y ); }
+        void main() {
+          vec2 p = vUv * vec2( 3.0, 1.2 ) + vec2( uTime * 0.03 + vW.x * 0.05, uTime * 0.01 );
+          float d = n( p ) * 0.55 + n( p * 2.3 + 3.1 ) * 0.3 + n( p * 5.1 - uTime * 0.05 ) * 0.15;
+          float edge = smoothstep( 0.0, 0.35, vUv.y ) * smoothstep( 1.0, 0.45, vUv.y ) * smoothstep( 0.0, 0.25, vUv.x ) * smoothstep( 1.0, 0.75, vUv.x );
+          float near = smoothstep( 4.0, 11.0, distance( vW.xz, uCam.xz ) );
+          float a = smoothstep( 0.35, 0.8, d ) * edge * near * 0.55;
+          gl_FragColor = vec4( uColor, a );
+        }`,
+    });
+    this.bankMat = mat;
+    const geo = new THREE.PlaneGeometry(16, 5).translate(0, 2.2, 0);
+    for (let i = 0; i < n; i++) {
+      const m = new THREE.Mesh(geo, mat);
+      const a = (i / n) * Math.PI * 2 + rand() * 0.6, r = randRange(r0, r1);
+      m.position.set(Math.cos(a) * r, 0, Math.sin(a) * r);
+      m.scale.set(randRange(0.8, 1.4), randRange(0.7, 1.2), 1);
+      m.renderOrder = 4;
+      this.group.add(m);
+      this.banks.push(m);
+    }
   }
 
   // Силуэты летучих мышей кружат вдали на фоне луны (не враги, просто декор).
@@ -35,6 +74,11 @@ export class Ambience {
   update(dt) {
     const game = this.game, c = this.cfg, cam = game.camera.position, t = game.time;
     const fx = game.fx;
+    if (this.banks.length) {
+      this.bankMat.uniforms.uTime.value = t;
+      this.bankMat.uniforms.uCam.value.copy(cam);
+      for (const b of this.banks) b.rotation.y = Math.atan2(cam.x - b.position.x, cam.z - b.position.z);
+    }
     // Стая у луны.
     if (this.bats.length) {
       const md = game.level.atmosphere.moonDir;

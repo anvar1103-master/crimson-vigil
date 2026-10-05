@@ -96,7 +96,7 @@ export function buildForest(scene, seed = 1) {
   L.flush();
   // Густой подлесок по всей поляне и за её краем.
   addGrass(L, { area: 30, count: 9000, mask: groundMask(L), scale: [0.3, 0.85], tint: 0xb8c0a0, seed: seed + 3 });
-  L.ambient = { fireflies: 0.9, spores: 0.6, bats: 10 };
+  L.ambient = { fireflies: 0.9, spores: 0.6, bats: 10, fogBanks: 14, fogBankRadius: [10, 28] };
   // Деревья по кольцу ставят коллайдеры-круги; поляна остаётся круглой благодаря им.
   L.rewardPoint = new V3(0, 0, 5);
   L.bossPoint = new V3(0, 0, -12);

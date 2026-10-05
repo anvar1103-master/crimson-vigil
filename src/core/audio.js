@@ -1,6 +1,7 @@
 // Синтезированный звук на WebAudio: выстрелы, шаги, вампиры, ветер, дождь, колокол, гром.
 // Файлов нет, всё генерируется. Пространственный звук идёт через PannerNode (HRTF).
 import { rand } from './util.js';
+import { Music } from './music.js';
 
 export class AudioEngine {
   constructor() {
@@ -31,6 +32,7 @@ export class AudioEngine {
 
     this.noise = this.noiseBuffer(3);
     this.startAmbience();
+    this.music = new Music(this);
   }
 
   resume() { this.ctx?.resume?.(); }
@@ -129,6 +131,7 @@ export class AudioEngine {
 
   updateListener(pos, forward, up) {
     if (!this.ctx) return;
+    this.listenerPos = { x: pos.x, y: pos.y, z: pos.z };
     const l = this.ctx.listener, t = this.t;
     if (l.positionX) {
       l.positionX.setValueAtTime(pos.x, t); l.positionY.setValueAtTime(pos.y, t); l.positionZ.setValueAtTime(pos.z, t);

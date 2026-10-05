@@ -138,7 +138,7 @@ export function buildVillage(scene, seed = 1) {
     mask: groundMask(L, [{ x: 0, z: -1, r: 10.3 }, { x0: -2.8, z0: -40, x1: 2.8, z1: 40 }, { x0: -40, z0: -3.9, x1: 40, z1: 1.9 }]),
   });
   addPuddles(L, { count: 22, area: 12, seed: seed + 9, mask: (x, z) => Math.hypot(x, z + 1) < 9.5 && groundMask(L)(x, z) });
-  L.ambient = { ash: 0.8, embersAir: 0.6, bats: 7 };
+  L.ambient = { ash: 0.8, embersAir: 0.6, bats: 7, fogBanks: 8, fogBankRadius: [14, 30] };
   L.rewardPoint = new V3(0, 0, 4.5);
   L.bossPoint = new V3(0, 0, -12);
   L.exitPoints = [
