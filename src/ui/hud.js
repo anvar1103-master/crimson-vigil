@@ -96,7 +96,44 @@ export class HUD {
         <span><b>WASD</b> движение</span><span><b>Мышь</b> прицел</span><span><b>ЛКМ</b> огонь</span><span><b>ПКМ</b> прицеливание</span>
         <span><b>R</b> перезарядка</span><span><b>Shift</b> бег</span><span><b>Q</b> рывок</span><span><b>Space</b> прыжок</span>
       </div>
-      <div class="foot">Гидеон Вейл · охотник на вампиров</div>`);
+      <div class="foot">Гидеон Вейл · охотник на вампиров</div>
+      <svg class="hero" viewBox="0 0 300 600" aria-hidden="true">
+        <defs>
+          <radialGradient id="heroGlow" cx=".5" cy=".3" r=".65"><stop offset="0" stop-color="#9a0a14" stop-opacity=".5"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+          <linearGradient id="rim" x1="0" x2="1"><stop offset=".55" stop-color="#ff3038" stop-opacity="0"/><stop offset="1" stop-color="#ff3038" stop-opacity=".9"/></linearGradient>
+        </defs>
+        <ellipse cx="160" cy="200" rx="160" ry="250" fill="url(#heroGlow)"/>
+        <g fill="#060204">
+          <!-- плащ: широкие плечи, разрез, подол колышется на ветру -->
+          <path d="M150 168 C120 168 96 176 84 188 C70 204 66 240 64 280 C60 360 50 440 30 520 C24 548 14 572 6 590 C40 584 70 596 96 588 C110 560 118 520 126 470 L140 470 L150 600 L196 596 C204 560 212 520 216 470 C226 520 240 556 262 584 C276 590 292 584 300 586 C282 540 262 480 248 400 C240 340 236 270 228 216 C224 196 214 182 196 174 C182 169 166 168 150 168 Z"/>
+          <!-- поднятый воротник -->
+          <path d="M112 182 C108 158 114 138 124 126 L136 150 L150 168 L164 150 L178 126 C190 140 194 160 188 184 Z"/>
+          <!-- лицо в тени шляпы -->
+          <path d="M134 120 C134 140 140 156 152 160 C164 156 170 140 170 120 Z"/>
+          <!-- шляпа: широкие поля, вмятая тулья -->
+          <path d="M62 122 C90 106 214 102 244 118 C250 124 240 130 226 128 C190 120 112 122 80 132 C66 134 56 128 62 122 Z"/>
+          <path d="M112 118 C112 92 118 72 134 66 C142 72 152 72 160 66 C178 70 188 92 190 116 Z"/>
+          <!-- правая рука вдоль тела, опущенный револьвер -->
+          <path d="M222 214 C236 250 240 300 236 338 L222 340 C224 300 218 262 206 234 Z"/>
+          <path d="M220 334 L240 332 L244 344 L240 352 L244 400 L236 402 L230 354 L222 352 Z"/>
+          <!-- левая рука придерживает полу плаща -->
+          <path d="M86 214 C72 250 70 300 80 336 L94 332 C88 296 92 256 104 230 Z"/>
+          <!-- сапоги -->
+          <path d="M130 560 L148 560 L150 600 L120 600 Z"/><path d="M172 560 L192 560 L200 598 L170 600 Z"/>
+        </g>
+        <!-- ремень с флягами святой воды -->
+        <rect x="86" y="300" width="146" height="9" fill="#120808"/>
+        <g fill="#9ad0ff" opacity=".9"><rect x="104" y="309" width="7" height="13" rx="3"/><rect x="116" y="309" width="7" height="13" rx="3"/><rect x="128" y="309" width="7" height="13" rx="3"/></g>
+        <!-- серебряная пряжка и крест Ордена -->
+        <rect x="153" y="299" width="12" height="11" fill="#c8ccd4"/>
+        <path d="M160 200 L160 236 M150 212 L170 212" stroke="#c8ccd4" stroke-width="3"/>
+        <!-- контровой багровый свет справа -->
+        <g fill="none" stroke="url(#rim)" stroke-width="3" stroke-linecap="round">
+          <path d="M62 122 C90 106 214 102 244 118"/>
+          <path d="M196 174 C214 182 224 196 228 216 C236 270 240 340 248 400 C262 480 282 540 300 586"/>
+          <path d="M178 126 C190 140 194 160 188 184"/>
+        </g>
+      </svg>`);
     root.append(this.menu);
     this.startBtn = this.menu.querySelector('.start');
     this.orderBtn = this.menu.querySelector('.order');
