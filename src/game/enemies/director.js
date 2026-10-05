@@ -20,7 +20,7 @@ export const ENEMY_TYPES = {
 // Боссы биомов.
 const BOSSES = {
   butcher: (game, pos, hp) => new Brute(game, pos, { boss: 'butcher', hp: 1500 * hp, weapon: 'cleaver' }),
-  broodmother: (game, pos, hp) => new Broodmother(game, pos, { boss: 'broodmother', hp: 1250 * hp }),
+  broodmother: (game, pos, hp) => new Broodmother(game, pos, { boss: 'broodmother', hp: 1900 * hp }),
   bellringer: (game, pos, hp) => new Brute(game, pos, { boss: 'bellringer', hp: 1800 * hp, weapon: 'bell' }),
   sovereign: (game, pos, hp) => new Sovereign(game, pos, { hp: 2600 * hp, speed: 3.3 }),
 };

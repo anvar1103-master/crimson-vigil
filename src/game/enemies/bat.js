@@ -227,7 +227,7 @@ export class Broodmother extends Bat {
       // Уязвима: сидит на земле, тяжело дышит.
       target = new V3(pos.x, 1.6, pos.z);
       sp = 3;
-      if (this.stateT > (enraged ? 1.4 : 2.2)) { this.state = 'circle'; this.diveCd = enraged ? 3.5 : 5; }
+      if (this.stateT > (enraged ? 1.1 : 1.6)) { this.state = 'circle'; this.diveCd = enraged ? 3.5 : 5; }
     }
     const desired = target.clone().sub(pos);
     const dl = desired.length();

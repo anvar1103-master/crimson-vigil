@@ -122,11 +122,12 @@ export class Weather {
       // Брызги на земле вокруг охотника.
       const n = Math.floor(this.rain * 7 + rand());
       for (let i = 0; i < n; i++) {
-        const a = rand() * Math.PI * 2, r = 0.5 + rand() * 9;
+        // Брызги не ближе 2 м, иначе у самой камеры они выглядят как светящиеся шары.
+        const a = rand() * Math.PI * 2, r = 2 + rand() * 9;
         game.fx.sparks.spawn({
           x: cam.position.x + Math.cos(a) * r, y: 0.03, z: cam.position.z + Math.sin(a) * r,
           vx: randRange(-0.3, 0.3), vy: randRange(0.6, 1.4), vz: randRange(-0.3, 0.3),
-          life: 0.18, size: 0.025, size1: 0.0, r: 0.5, g: 0.48, b: 0.55, a: 0.6, gravity: 9,
+          life: 0.15, size: 0.016, size1: 0.0, r: 0.28, g: 0.27, b: 0.32, a: 0.5, gravity: 9,
         });
       }
     }

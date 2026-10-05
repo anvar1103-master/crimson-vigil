@@ -194,12 +194,14 @@ export const SCENARIOS = {
     setup(g) {
       if (!g.params.has('audio')) g.audio.enabled = false;
       g.startRun();
-      g.player.maxHealth = g.player.health = 400; // бот слабый — даём ему форы, проверяем логику, а не баланс
+      // Бот слабее человека — по умолчанию даём ему форы; &hp=100 — честная проверка баланса.
+      g.player.maxHealth = g.player.health = Number(g.params.get('hp') || 400);
       if (g.params.has('god')) g.run.stats.damage = 4;
       const ev = g.params.get('event');
       if (ev) { g.run.gold = 200; g.transitionTo({ kind: 'event', reward: ev, biome: 0, index: 1 }); }
       const sb = g.params.get('startbiome');
-      if (sb) g.transitionTo({ kind: 'combat', reward: 'relic', biome: Number(sb), index: 0 });
+      if (g.params.has('bossfight')) g.transitionTo({ kind: 'boss', reward: 'relic', biome: Number(sb || 0), index: 3 });
+      else if (sb) g.transitionTo({ kind: 'combat', reward: 'relic', biome: Number(sb), index: 0 });
     },
     input(g, i) {
       const p = g.player, inp = {};

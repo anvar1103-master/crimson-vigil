@@ -73,9 +73,11 @@ export class Brute extends GroundEnemy {
     this.radius *= this.sizeScale;
     this.mass = 8;
     this.armor = 1;
-    this.slamDamage = 30;
-    this.chargeDamage = 34;
-    this.waveR = 13;
+    // Мясник — первый босс: бьёт чуть мягче Звонаря.
+    const first = opts.boss === 'butcher';
+    this.slamDamage = first ? 22 : 28;
+    this.chargeDamage = first ? 26 : 32;
+    this.waveR = first ? 10 : 13;
     this.speed *= 1.15;
     this.chargeCd = 3;
     this.summonCd = 8;
@@ -257,7 +259,7 @@ export class Brute extends GroundEnemy {
           if (this.weapon === 'bell') this.toll();
         }
         if (this.stateT > 1.2) {
-          const n = this.weapon === 'bell' ? 3 : 4;
+          const n = 3;
           for (let i = 0; i < n; i++) game.enemies.spawn('thrall', game.enemies.pickSpawn(), { hp: 55 });
           game.hud.say(this.weapon === 'bell' ? 'Колокол зовёт паству!' : 'Ужин подан, гости дорогие!', this.bossName);
           this.summonCd = enraged ? 11 : 15;
