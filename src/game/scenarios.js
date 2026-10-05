@@ -30,6 +30,12 @@ export const SCENARIOS = {
   cage: { steps: 30, setup(g) { g.player.teleport(new V3(-7, 0, 12.5), 0.75); g.player.pitch = 0.3; } },
   // Фасад собора вблизи.
   facade: { steps: 30, setup(g) { g.player.teleport(new V3(-2.2, 0, -14.2), 0.5); g.player.pitch = 0.12; } },
+  // Серия убийств: шесть отродий подряд в голову.
+  combo: {
+    steps: 100,
+    setup(g) { for (let i = 0; i < 6; i++) { const e = g.enemies.spawn('thrall', ahead(g, 7, (i - 2.5) * 1.1)); e.speed = 0; e.attackCd = 1e9; e.hp = 1; } },
+    input(g, i) { if (i >= 80 && i < 92 && i % 2 === 0) { const e = g.enemies.list.find((x) => x.alive); if (e) { e.takeDamage(99, {}); g.onEnemyKilled(e, { headshot: true }); } } return {}; },
+  },
   // Фляга святой воды по группе отродий.
   flask: {
     steps: 110,

@@ -431,7 +431,18 @@ export class Game {
     if (headshot) run.headshots++;
     const c = enemy.center();
     const coins = enemy.boss ? 30 : enemy.elite ? 8 : 2 + Math.floor(rand() * 3);
-    this.coins.burst(c, Math.round(coins * (run.zoneMods?.gold ?? 1)), 1);
+    // Серия убийств: каждые 5 — ещё +25% золота (до ×2.5).
+    run.combo = (run.comboT > 0 ? run.combo : 0) + 1;
+    run.comboT = 4 + (stats.comboTime || 0);
+    run.bestCombo = Math.max(run.bestCombo || 0, run.combo);
+    const comboMul = Math.min(2.5, 1 + Math.floor(run.combo / 5) * 0.25);
+    this.hud.combo(run.combo, comboMul);
+    if ([5, 10, 20, 35].includes(run.combo)) {
+      this.hud.banner({ 5: 'Кровавая жатва', 10: 'Бойня', 20: 'Охотник ночи', 35: 'Бич Варна' }[run.combo], `Серия ×${run.combo} · золото ×${comboMul.toFixed(2)}`);
+      this.audio.bell();
+      if (stats.comboHeal) this.player.heal(stats.comboHeal);
+    }
+    this.coins.burst(c, Math.round(coins * comboMul * (run.zoneMods?.gold ?? 1)), 1);
     if (rand() < (enemy.elite ? 0.6 : 0.12)) this.coins.vial(c, 15);
     if (stats.healOnKill) this.player.heal(stats.healOnKill);
     if (headshot && stats.headshotReload) {
@@ -546,6 +557,7 @@ export class Game {
     const dtw = frozen ? 0 : dt * this.timeScale;
     this.time += dtw;
     this.barkCooldown -= dt;
+    if (this.run.comboT > 0) { this.run.comboT -= dtw; if (this.run.comboT <= 0) { this.run.combo = 0; this.hud.combo(0, 1); } }
     this.input.lastInteract = input.interact;
 
     const playing = this.state === 'playing';

@@ -171,6 +171,23 @@ export class HUD {
     next();
   }
 
+  // Счётчик серии убийств справа от прицела; полоска показывает, сколько осталось до сброса.
+  combo(n, mul) {
+    if (!this.comboEl) {
+      this.comboEl = h('div', 'combo', '<div class="cn"></div><div class="cm"></div><div class="cb"><i></i></div>');
+      this.hud.append(this.comboEl);
+    }
+    this.comboEl.classList.toggle('show', n >= 2);
+    if (n < 2) return;
+    this.comboEl.querySelector('.cn').textContent = `×${n}`;
+    this.comboEl.querySelector('.cm').textContent = mul > 1 ? `золото ×${mul.toFixed(2)}` : 'серия';
+    const bar = this.comboEl.querySelector('.cb i');
+    bar.style.transition = 'none'; bar.style.width = '100%';
+    void bar.offsetWidth;
+    bar.style.transition = `width ${this.game.run.comboT}s linear`; bar.style.width = '0%';
+    this.comboEl.classList.remove('pop'); void this.comboEl.offsetWidth; this.comboEl.classList.add('pop');
+  }
+
   setFps(on) { this.fpsEl.classList.toggle('hidden', !on); }
 
   tickFps(dt, pr) {
@@ -269,7 +286,7 @@ export class HUD {
     const m = Math.floor(run.time / 60), s = Math.floor(run.time % 60).toString().padStart(2, '0');
     this.death.querySelector('.stats').innerHTML =
       `<div><b>${run.kills}</b>упокоено</div><div><b>${run.headshots}</b>в голову</div><div><b>${run.depth + 1}</b>зон</div>` +
-      `<div><b>${run.relics.length}</b>реликвий</div><div><b>${m}:${s}</b>в ночи</div><div><b>◆ ${run.shardsEarned ?? 0}</b>осколков</div>`;
+      `<div><b>${run.relics.length}</b>реликвий</div><div><b>×${run.bestCombo || 0}</b>серия</div><div><b>${m}:${s}</b>в ночи</div><div><b>◆ ${run.shardsEarned ?? 0}</b>осколков</div>`;
   }
 
   showDeath(run) {
