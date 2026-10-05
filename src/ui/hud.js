@@ -90,12 +90,11 @@ export class HUD {
       </div>
       <div class="lore">Сорок ночей Багровая Луна не заходит над провинцией Варн.<br>Последний охотник Ордена идёт туда, откуда не возвращаются.</div>
       <button class="start">Начать охоту</button>
-      <button class="order small">Святилище Ордена</button>
-      <button class="codexbtn small">Бестиарий</button>
-      <button class="opts small">Настройки</button>
+      <div class="menurow"><button class="order small">Святилище Ордена</button><button class="codexbtn small">Бестиарий</button><button class="opts small">Настройки</button></div>
+      <button class="hardbtn small hidden">Кровавая ночь: выкл</button>
       <div class="controls">
         <span><b>WASD</b> движение</span><span><b>Мышь</b> прицел</span><span><b>ЛКМ</b> огонь</span><span><b>ПКМ</b> прицеливание</span>
-        <span><b>R</b> перезарядка</span><span><b>Shift</b> бег</span><span><b>Q</b> рывок</span><span><b>Space</b> прыжок</span>
+        <span><b>R</b> перезарядка</span><span><b>Shift</b> бег</span><span><b>Q</b> рывок</span><span><b>Space</b> прыжок</span><span><b>G</b> святая вода</span><span><b>E</b> действие</span>
       </div>
       <div class="foot">Гидеон Вейл · охотник на вампиров</div>
       <svg class="hero" viewBox="0 0 300 600" aria-hidden="true">
@@ -140,6 +139,7 @@ export class HUD {
     this.orderBtn = this.menu.querySelector('.order');
     this.settingsBtn = this.menu.querySelector('.opts');
     this.codexBtn = this.menu.querySelector('.codexbtn');
+    this.hardBtn = this.menu.querySelector('.hardbtn');
 
     this.pause = h('div', 'screen pause hidden', `<h2>Пауза</h2><div class="hint">Ночь подождёт. Недолго.</div>
       <div class="btns"><button class="resume">Вернуться в ночь</button><button class="opts small">Настройки</button><button class="quit small">Покинуть забег</button></div>`);
@@ -317,7 +317,12 @@ export class HUD {
     this.prompt.classList.toggle('show', !!text);
   }
 
-  setMeta(meta) {
+  setMeta(meta, hard = false) {
+    if (this.hardBtn) {
+      this.hardBtn.classList.toggle('hidden', !(meta.wins > 0));
+      this.hardBtn.textContent = `Кровавая ночь: ${hard ? 'вкл · урон тварей ×1.35, осколки ×1.75' : 'выкл'}`;
+      this.hardBtn.classList.toggle('on', hard);
+    }
     let el = this.menu.querySelector('.metainfo');
     if (!el) {
       el = h('div', 'metainfo');

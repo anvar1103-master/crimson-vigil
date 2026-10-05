@@ -278,3 +278,10 @@ button.small { font-size: 18px; padding: 9px 34px; margin-top: 14px; letter-spac
 .choice.compact .card .name { font-size: 20px; }
 .choice.compact .card .desc { font-size: 16px; }
 .choice.compact .card.disabled { opacity: .35; }
+.menu button.hardbtn.on { background: linear-gradient(180deg, rgba(160, 10, 20, .95), rgba(70, 0, 8, .95)); box-shadow: 0 0 30px rgba(255, 30, 40, .6); }
+.menu .menurow { display: flex; gap: 10px; margin-top: 4px; }
+.menu .menurow button { margin-top: 10px; }
+.menu h1 { font-size: 108px; }
+.menu .lore { margin: 22px 0 22px; }
+.menu .controls { margin-top: 20px; }
+.menu .metainfo { margin-top: 12px; }

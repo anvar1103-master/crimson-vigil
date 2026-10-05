@@ -123,6 +123,7 @@ export class Game {
     this.hud.startBtn.addEventListener('click', () => this.startRun());
     this.hud.orderBtn.addEventListener('click', () => this.openOrder());
     this.hud.codexBtn?.addEventListener('click', () => this.openCodex());
+    this.hud.hardBtn?.addEventListener('click', () => { this.hardMode = !this.hardMode; this.hud.setMeta(this.meta, this.hardMode); this.audio.init(); this.audio.bell(); });
     this.hud.settingsBtn.addEventListener('click', () => { this.hud.menu.classList.add('hidden'); this.settingsUI.open(() => this.hud.menu.classList.remove('hidden')); });
     this.hud.pause.querySelector('.resume').addEventListener('click', () => this.input.lock());
     this.hud.pause.querySelector('.opts').addEventListener('click', () => this.settingsUI.open());
@@ -278,6 +279,8 @@ export class Game {
     const up = this.meta.upgrades;
     this.run.gold += (up.tithe || 0) * 25;
     this.run.stats.dashCd *= 1 - (up.reflex || 0) * 0.1;
+    // Кровавая ночь: твари крепче и злее, осколков больше.
+    if (this.hardMode && this.meta.wins > 0) { this.run.hard = true; this.run.stats.enemyDamage = 1.35; this.run.stats.enemySpeed = 1.1; }
     if (up.arsenal) this.addRelic(rollRelics(this.run, 1)[0]);
     this.flasks.reset();
     this.zones.enter(first);
@@ -409,7 +412,8 @@ export class Game {
 
   endRun(victory) {
     const run = this.run;
-    const shards = Math.floor(run.kills / 4) + run.bossesSlain * 15 + (victory ? 50 : 0);
+    const shards = Math.round((Math.floor(run.kills / 4) + run.bossesSlain * 15 + (victory ? 50 : 0)) * (run.hard ? 1.75 : 1));
+    if (victory && run.hard) this.meta.hardWins = (this.meta.hardWins || 0) + 1;
     this.meta.shards += shards;
     this.meta.runs++;
     if (victory) this.meta.wins++;

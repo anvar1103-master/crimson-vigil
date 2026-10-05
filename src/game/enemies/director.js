@@ -127,7 +127,7 @@ export class EnemyManager {
     }
     const d = this.director;
     if (!d.enabled || !game.player.alive) return;
-    const stats = { hp: 1 + d.tier * 0.12, speed: Math.min(1 + d.tier * 0.03, 1.35) * (game.run.zoneMods?.enemySpeed ?? 1) };
+    const stats = { hp: (1 + d.tier * 0.12) * (game.run.hard ? 1.4 : 1), speed: Math.min(1 + d.tier * 0.03, 1.35) * (game.run.zoneMods?.enemySpeed ?? 1) };
 
     if (d.boss) {
       if (!d.bossSpawned) {
