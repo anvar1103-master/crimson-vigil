@@ -6,6 +6,7 @@ import * as P from '../props.js';
 import * as Q from '../props2.js';
 import { registerBiome } from '../biomes.js';
 import { withFog } from '../../core/fog.js';
+import { roseWindowTex } from '../../core/textures.js';
 import { scatter, corridors } from './village.js';
 import { addPuddles } from '../ambience.js';
 
@@ -147,6 +148,22 @@ export function buildCourtyard(scene, seed = 1) {
     P.wallTorch(L, M, sx * 3.2, 3.2, -20.95, 0, { intensity: 22 });
     Q.stainedWindow(L, sx * 7, 11, -20.95, 0, 2.2, 4.5, [1.8, 0.8, 0.9]);
   }
+  // Центральный шпиль донжона с розой-витражом: силуэт на фоне луны.
+  L.add(boxGeo(21, 12, 6, rng), M.stone, mat4(0, H + 6, -24));
+  const gab = new THREE.Shape(); gab.moveTo(-10.5, 0); gab.lineTo(10.5, 0); gab.lineTo(0, 9); gab.closePath();
+  L.add(extrudeGeo(gab, 6), M.slate, mat4(0, H + 12, -24));
+  L.add(boxGeo(3, 10, 3, rng), M.stone, mat4(0, H + 22, -24));
+  L.add(new THREE.ConeGeometry(2.6, 12, 4), M.slate, mat4(0, H + 33, -24, 0, Math.PI / 4, 0));
+  L.add(new THREE.ConeGeometry(0.4, 5, 6), M.iron, mat4(0, H + 41, -24));
+  for (const sx of [-1, 1]) {
+    L.add(boxGeo(1.2, 14, 1.2, rng), M.trim, mat4(sx * 6.5, H + 7, -20.9));
+    L.add(new THREE.ConeGeometry(0.9, 4, 4), M.stone, mat4(sx * 6.5, H + 16, -20.9, 0, Math.PI / 4, 0));
+  }
+  const roseMat = withFog(new THREE.MeshBasicMaterial({ map: roseWindowTex(), color: new THREE.Color(1.6, 1.0, 1.0) }));
+  const rose = new THREE.Mesh(new THREE.CircleGeometry(3.2, 40), roseMat);
+  rose.position.set(0, H + 5, -20.95);
+  L.addMesh(rose);
+  L.add(new THREE.TorusGeometry(3.3, 0.3, 8, 40), M.trim, mat4(0, H + 5, -20.85));
   // Знамёна на стенах.
   for (const x of [-12, -6, 6, 12]) Q.banner(L, x, 9.6, 19.95, Math.PI);
   for (const z of [-12, 12]) { Q.banner(L, 19.95, 9.6, z, -Math.PI / 2); Q.banner(L, -19.95, 9.6, z, Math.PI / 2); }
