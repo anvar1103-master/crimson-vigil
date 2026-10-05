@@ -165,7 +165,7 @@ export function buildCathedralYard(scene, seed = 2024) {
   // Лужи на дорожке и площади перед собором.
   const pavedOnly = (x, z) => ((Math.abs(x) < 2.3 && z > -6 && z < 18) || (Math.abs(x) < 8.3 && z > -18 && z < -6)) && groundMask(L)(x, z);
   addPuddles(L, { count: 16, area: 18, seed: seed + 4, mask: pavedOnly });
-  L.ambient = { bats: 8, spores: 0.25, fogBanks: 10, fogBankRadius: [12, 30] };
+  L.ambient = { bats: 8, spores: 0.25, fogBanks: 10, fogBankRadius: [12, 30], eyes: 3, eyesRadius: [24, 32] };
   L.pickPerches(7);
   // Кладбищенская трава: всё, что не замощено.
   addGrass(L, {

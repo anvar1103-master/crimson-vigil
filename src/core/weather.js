@@ -89,6 +89,8 @@ export class Weather {
     const t = this.game.time;
     this.flashSeq = [[t, 1], [t + 0.08, 0.3], [t + 0.16, 0.9]];
     if (rand() < 0.5) this.flashSeq.push([t + 0.35, 0.6]);
+    // Ветвистый разряд в небе вдалеке.
+    this.skyBolt();
     // Гроза-модификатор: молния бьёт в случайную тварь.
     const targets = this.stormStrikes ? this.game.enemies.list.filter((e) => e.alive && e.state !== 'rise') : [];
     if (targets.length) {
@@ -97,6 +99,36 @@ export class Weather {
       if (e.takeDamage(90, { dir: new THREE.Vector3(0, -1, 0), knockback: 0 })) this.game.onEnemyKilled(e, { headshot: false });
       this.game.audio.thunder(0.05);
     } else this.game.audio.thunder(randRange(0.4, 1.8));
+  }
+
+  // Зигзаг молнии на горизонте: линия с ответвлениями, живёт долю секунды.
+  skyBolt() {
+    const game = this.game, cam = game.camera.position;
+    const a = rand() * Math.PI * 2, dist = randRange(90, 150);
+    const pts = [];
+    const build = (x, y, z, dx, dz, len, depth) => {
+      let px = x, py = y, pz = z;
+      for (let i = 0; i < len; i++) {
+        const nx = px + dx * randRange(2, 5) + randRange(-3, 3), ny = py - randRange(3, 7), nz = pz + dz * randRange(2, 5) + randRange(-3, 3);
+        pts.push(px, py, pz, nx, ny, nz);
+        if (depth > 0 && rand() < 0.25) build(nx, ny, nz, randRange(-1, 1), randRange(-1, 1), Math.floor(len / 2), depth - 1);
+        px = nx; py = ny; pz = nz;
+        if (py < 0) break;
+      }
+    };
+    build(cam.x + Math.cos(a) * dist, 80, cam.z + Math.sin(a) * dist, randRange(-0.5, 0.5), randRange(-0.5, 0.5), 14, 2);
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+    const line = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: new THREE.Color(4, 3.8, 5), fog: false, transparent: true }));
+    game.scene.add(line);
+    const t0 = game.time;
+    const fade = () => {
+      const k = 1 - (game.time - t0) / 0.45;
+      if (k <= 0) { game.scene.remove(line); g.dispose(); line.material.dispose(); return; }
+      line.material.opacity = k * (0.6 + 0.4 * Math.sin((game.time - t0) * 60));
+      requestAnimationFrame(fade);
+    };
+    fade();
   }
 
   // Видимый разряд с неба в точку.

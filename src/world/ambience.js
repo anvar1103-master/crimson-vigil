@@ -14,7 +14,9 @@ export class Ambience {
     this.bats = [];
     this.banks = [];
     this.crows = [];
+    this.eyes = [];
     if (cfg.bats) this.makeBats(cfg.bats);
+    if (cfg.eyes) this.makeEyes(cfg.eyes, cfg.eyesRadius || [22, 30]);
     if (game.level.perches?.length) this.makeCrows(game.level.perches);
     if (cfg.fogBanks) this.makeFogBanks(cfg.fogBanks, cfg.fogBankRadius || [12, 30]);
   }
@@ -53,6 +55,44 @@ export class Ambience {
       m.renderOrder = 4;
       this.group.add(m);
       this.banks.push(m);
+    }
+  }
+
+  // Глаза в темноте: пары светящихся точек за краем арены. Моргают и гаснут, если на них долго смотреть.
+  makeEyes(n, [r0, r1]) {
+    const geo = new THREE.SphereGeometry(0.035, 6, 4);
+    for (let i = 0; i < n; i++) {
+      const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(rand() < 0.7 ? 0xff2010 : 0xffb020).multiplyScalar(4), fog: false, transparent: true });
+      const g = new THREE.Group();
+      const a = rand() * Math.PI * 2, r = randRange(r0, r1);
+      g.position.set(Math.cos(a) * r, randRange(0.5, 1.6), Math.sin(a) * r);
+      for (const sx of [-1, 1]) { const e = new THREE.Mesh(geo, mat); e.position.x = sx * 0.07; g.add(e); }
+      this.group.add(g);
+      this.eyes.push({ g, mat, a, r, next: randRange(1, 4), open: rand() < 0.6 ? 1 : 0, stare: 0 });
+    }
+  }
+
+  updateEyes(dt) {
+    const cam = this.game.camera, fwd = cam.getWorldDirection(this._v ||= new THREE.Vector3());
+    for (const e of this.eyes) {
+      e.g.lookAt(cam.position);
+      const to = e.g.position.clone().sub(cam.position).normalize();
+      // Если игрок смотрит прямо на глаза — они исчезают и появляются в другом месте.
+      e.stare = fwd.dot(to) > 0.985 ? e.stare + dt : Math.max(0, e.stare - dt);
+      e.next -= dt;
+      if (e.stare > 0.8 && e.open > 0.5) { e.open = 0; e.next = randRange(3, 6); }
+      if (e.next <= 0) {
+        if (e.open < 0.5) {
+          e.a = rand() * Math.PI * 2;
+          e.g.position.set(Math.cos(e.a) * e.r, randRange(0.5, 1.6), Math.sin(e.a) * e.r);
+          e.open = 1;
+          e.next = randRange(4, 9);
+        } else { e.blink = 0.15; e.next = randRange(2, 6); }
+      }
+      if (e.blink > 0) e.blink -= dt;
+      const vis = e.open * (e.blink > 0 ? 0 : 1);
+      e.mat.opacity += (vis - e.mat.opacity) * Math.min(1, dt * 6);
+      e.g.visible = e.mat.opacity > 0.02;
     }
   }
 
@@ -107,6 +147,12 @@ export class Ambience {
       this.bankMat.uniforms.uTime.value = t;
       this.bankMat.uniforms.uCam.value.copy(cam);
       for (const b of this.banks) b.rotation.y = Math.atan2(cam.x - b.position.x, cam.z - b.position.z);
+    }
+    if (this.eyes.length) this.updateEyes(dt);
+    // Дым из труб.
+    if (game.level.chimneys && rand() < 0.35) {
+      const p = game.level.chimneys[Math.floor(rand() * game.level.chimneys.length)];
+      fx.smoke.spawn({ x: p.x, y: p.y, z: p.z, vx: randRange(0.3, 0.7), vy: randRange(0.6, 1.0), vz: randRange(-0.1, 0.2), life: randRange(3, 5), size: 0.4, size1: 2.2, r: 0.12, g: 0.11, b: 0.11, a: 0.25, drag: 0.3, spin: randRange(-0.3, 0.3) });
     }
     // Вороны.
     const shotRecently = game.time - (game.lastShotTime ?? -99) < 0.2;

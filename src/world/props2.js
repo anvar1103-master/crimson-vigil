@@ -69,6 +69,10 @@ export function house(L, M, x, z, ry, { w = 6, d = 5, burning = false, lit = 0.5
   gable.moveTo(-(w + 0.5) / 2, 0); gable.lineTo((w + 0.5) / 2, 0); gable.lineTo(0, rh * ((w + 0.5) / rw)); gable.closePath();
   L.add(extrudeGeo(gable, 0.1), M.timber, at(0, top, (d + 0.5) / 2 + 0.03));
   L.add(boxGeo(0.7, 2.2, 0.7, rng), M.stoneDark, at(w * 0.25, top + rh * 0.55, -d * 0.2));
+  if (!burning && rng() < 0.6) {
+    const [cx, , cz] = local(x, z, ry, w * 0.25, 0, -d * 0.2);
+    (L.chimneys ||= []).push(new V3(cx, top + rh * 0.55 + 1.2, cz));
+  }
   // Окна и ставни.
   const winY = [base + 1.6, base + h1 + 0.25 + 1.3];
   for (let f = 0; f < 2; f++) for (const wx of [-w * 0.3, w * 0.3]) {

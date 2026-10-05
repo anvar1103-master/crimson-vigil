@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { extrudeGeo } from '../../world/geo.js';
 import { woodTex } from '../../core/textures.js';
 import { Spring, damp, randRange } from '../../core/util.js';
+import { buildHand } from './revolver.js';
 
 const V3 = THREE.Vector3;
 function profile(geo) { geo.rotateY(Math.PI / 2); return geo; }
@@ -108,6 +109,10 @@ export class Crossbow {
     Object.assign(this, m);
     this.model = new THREE.Group();
     this.model.add(this.root);
+    // Та же перчатка, что и на револьвере, — на пистолетной рукояти арбалета.
+    this.hand = buildHand();
+    this.hand.position.set(0, -0.005, -0.01);
+    this.root.add(this.hand);
     this.hip = new V3(0.1, -0.125, -0.47);
     this.ads = new V3(0, -0.058 - 0.022, -0.3);
     this.model.position.copy(this.hip);
@@ -217,6 +222,7 @@ export class Crossbow {
     pos.y += -rb * 0.05;
     pos.x += rb * 0.02;
     this.model.rotation.set(this.kickRot.x * 0.018 - rb * 0.35 + (1 - aim) * 0.03, (1 - aim) * 0.05 + rb * 0.2, -rb * 0.25 + (1 - aim) * 0.12);
+    this.hand.visible = game.settings.showHands;
   }
 }
 

@@ -44,7 +44,19 @@ powershell -File tools/shot.ps1 -Query "scenario=overview" -Name overview
 - M8: настройки (мышь, FOV, звук, качество), динамическое разрешение, пауза с меню, экран загрузки,
   титульная карточка, обучающие подсказки, руки охотника, start.bat.
 
+### Сессия 2 — атмосфера и окружение
+- Баланс: проверка ботом со 100 HP (деревня проходима, Мясник смягчён, Матерь Стаи крепче).
+- Лунные лучи: радиальный проход к экранной позиции луны; источник — только небо у луны.
+- Трава и подлесок: тысячи пучков одним InstancedMesh, ветер в вершинном шейдере.
+- Живая атмосфера (`world/ambience.js`): пепел и искры над деревней, светлячки и споры в лесу,
+  пыль в помещениях, стаи летучих мышей у луны, полосы тумана, лужи, глаза в темноте, дым из труб.
+- Звук: процедурная музыка (органный гул, хор ре-минора, боевые барабаны, темп босса),
+  звуки биомов (совы, волчий вой, вороны, капель).
+- Окружение: вороны (взлетают от выстрелов), горгульи, клетки висельников со скелетами, паутина,
+  святые в нишах фасада, высокие витражи, зигзаги молний в небе, перчатка на арбалете.
+
 ## Полезные сценарии (`?scenario=`)
 overview, vampire, combat, hit, kill, reload, reloadpose, aim, hurt, death, waves, menu, gun, gunlab
-(&view=side|front&weapon=1), crossbow, crossbowhit, lightning, reward, portals, cards, bot, flow.
+(&view=side|front|right&weapon=1&hands), crossbow, crossbowhit, lightning, reward, portals, cards, bot, flow
+(&god &hp=100 &startbiome=N &bossfight &event=merchant|altar &audio), bestiary (&boss=…), firstlook, cage, facade.
 Добавьте `&biome=village|forest|cathedral|crypt|castle|throne`, чтобы выбрать локацию.
