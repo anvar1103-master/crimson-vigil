@@ -8,6 +8,7 @@ import { roseWindowTex, lancetGlassTex } from '../core/textures.js';
 import { withFog } from '../core/fog.js';
 import { addGrass, groundMask } from './grass.js';
 import { addPuddles } from './ambience.js';
+import { addCastleBackdrop } from './castleBackdrop.js';
 
 const V3 = THREE.Vector3;
 
@@ -24,8 +25,8 @@ export const yardAtmosphere = {
   hemiSky: 0x6a3040,
   hemiGround: 0x0c0607,
   hemiIntensity: 0.55,
-  rain: 0.6,
-  lightning: true,
+  rain: 0,
+  lightning: false,
 };
 
 export function buildCathedralYard(scene, seed = 2024) {
@@ -375,15 +376,10 @@ function buildDistant(L) {
   hill.scale.set(1.4, 0.75, 1);
   add(new THREE.SphereGeometry(80, 24, 12), -60, -55, -220).scale.set(1.8, 0.7, 1);
   add(new THREE.SphereGeometry(90, 24, 12), 230, -60, -40).scale.set(1, 0.6, 1.8);
-  // Замок.
-  const cx = 118, cy = 8, cz = -196;
-  add(new THREE.BoxGeometry(34, 14, 12), cx, cy + 7, cz);
-  for (const [dx, h, r] of [[-17, 26, 3.2], [17, 22, 3], [-5, 36, 3.6], [8, 30, 2.6], [-26, 16, 2.4]]) {
-    add(new THREE.CylinderGeometry(r, r * 1.1, h, 8), cx + dx, cy + h / 2, cz);
-    add(new THREE.ConeGeometry(r * 1.35, h * 0.45, 8), cx + dx, cy + h + h * 0.22, cz);
-  }
-  for (const [dx, dy] of [[-5, 26], [8, 22], [-17, 18], [3, 9]]) add(new THREE.BoxGeometry(0.8, 1.6, 0.5), cx + dx, cy + dy, cz + 4, lit);
+  void lit;
   L.root.add(group);
+  // Замок Морвейн на утёсе под луной.
+  addCastleBackdrop(L, { dir: yardAtmosphere.moonDir, dist: 170 });
 }
 
 // Тёплый градиент «освещённого свечами интерьера».

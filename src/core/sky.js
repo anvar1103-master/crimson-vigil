@@ -1,12 +1,15 @@
 // Небо: багровый градиент, огромная луна с ореолом, облака, звёзды, вспышки молний.
 import * as THREE from 'three';
 
-export function createSky({ horizon, zenith, moonDir, moonColor = [1.0, 0.94, 0.86], moonSize = 0.9965 }) {
+export function createSky({ horizon, zenith, moonDir, moonColor = [1.0, 0.94, 0.86], moonSize = 0.9965, halo = [0.55, 0.06, 0.05], halo2 = [0.9, 0.55, 0.45], cloudLit = [0.42, 0.16, 0.14] }) {
   const uniforms = {
     uHorizon: { value: new THREE.Color(horizon) },
     uZenith: { value: new THREE.Color(zenith) },
     uMoonDir: { value: moonDir.clone().normalize() },
     uMoonColor: { value: new THREE.Vector3(...moonColor) },
+    uHalo: { value: new THREE.Vector3(...halo) },
+    uHalo2: { value: new THREE.Vector3(...halo2) },
+    uCloudLit: { value: new THREE.Vector3(...cloudLit) },
     uMoonCos: { value: moonSize },
     uTime: { value: 0 },
     uFlash: { value: 0 },
@@ -23,7 +26,7 @@ export function createSky({ horizon, zenith, moonDir, moonColor = [1.0, 0.94, 0.
         gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
       }`,
     fragmentShader: /* glsl */`
-      uniform vec3 uHorizon, uZenith, uMoonDir, uMoonColor;
+      uniform vec3 uHorizon, uZenith, uMoonDir, uMoonColor, uHalo, uHalo2, uCloudLit;
       uniform float uMoonCos, uTime, uFlash;
       varying vec3 vDir;
       float hash( vec3 p ) { p = fract( p * 0.3183099 + 0.1 ); p *= 17.0; return fract( p.x * p.y * p.z * ( p.x + p.y + p.z ) ); }
@@ -45,15 +48,15 @@ export function createSky({ horizon, zenith, moonDir, moonColor = [1.0, 0.94, 0.
         float md = dot( d, mn );
         // Ореол: красный широкий + бледный узкий.
         float mdp = max( md, 0.0 );
-        col += vec3( 0.55, 0.06, 0.05 ) * pow( mdp, 14.0 ) * 0.55;
-        col += vec3( 0.9, 0.55, 0.45 ) * pow( mdp, 160.0 ) * 0.3;
+        col += uHalo * pow( mdp, 14.0 ) * 0.55;
+        col += uHalo2 * pow( mdp, 160.0 ) * 0.3;
         col += uMoonColor * pow( mdp, 1400.0 ) * 0.5;
 
         // Облака: плоский слой, подсвеченный луной.
         vec2 cp = d.xz / max( d.y + 0.12, 0.04 );
         float cl = fbm( vec3( cp * 0.55 + vec2( uTime * 0.006, uTime * 0.002 ), uTime * 0.008 ) );
         float cloud = smoothstep( 0.42, 0.78, cl ) * smoothstep( -0.04, 0.2, d.y );
-        vec3 cloudCol = mix( uHorizon * 0.55, vec3( 0.42, 0.16, 0.14 ), pow( mdp, 6.0 ) );
+        vec3 cloudCol = mix( uHorizon * 0.55, uCloudLit, pow( mdp, 6.0 ) );
         cloudCol += vec3( 0.9, 0.7, 0.65 ) * pow( mdp, 60.0 ) * 0.5;
 
         // Звёзды.

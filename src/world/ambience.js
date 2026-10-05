@@ -236,7 +236,9 @@ export class Ambience {
 }
 
 // Лужи: глянцевые неровные пятна, отражают небо и огни. Рисуются одним мешем на уровень.
-export function addPuddles(L, { count = 18, area = 16, mask = () => true, seed = 3 } = {}) {
+export function addPuddles(L, { count = 18, area = 16, mask = () => true, seed = 3, enabled = false } = {}) {
+  // Лужи давали пересвет бликами вместе с дождём — по умолчанию выключены.
+  if (!enabled) return null;
   const rng = mulberry32(seed);
   const geos = [];
   let n = 0, tries = 0;

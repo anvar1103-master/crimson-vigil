@@ -8,6 +8,7 @@ import { registerBiome } from '../biomes.js';
 import { addGrass, groundMask } from '../grass.js';
 void 0;
 import { addPuddles } from '../ambience.js';
+import { addCastleBackdrop } from '../castleBackdrop.js';
 
 const V3 = THREE.Vector3;
 
@@ -135,6 +136,7 @@ export function buildVillage(scene, seed = 1) {
   add(new THREE.BoxGeometry(10, 18, 14), 60, 9, -180);
   add(new THREE.ConeGeometry(4.5, 26, 4), 60, 35, -183).rotation.y = Math.PI / 4;
   L.root.add(far);
+  addCastleBackdrop(L, { dir: new V3(-0.5, 0.45, -0.75), dist: 180, seed: seed + 1 });
   L.updaters.push((dt) => { blades.rotation.z += dt * 0.05; });
 
   L.flush();

@@ -2,7 +2,7 @@
 // Хранятся в localStorage; без хранилища просто действуют до перезагрузки.
 const KEY = 'crimson-vigil-settings-v1';
 
-export const DEFAULT_SETTINGS = { sensitivity: 1, fov: 68, volume: 0.8, quality: 'high', showFps: false, invertY: false, showHands: true };
+export const DEFAULT_SETTINGS = { sensitivity: 1, fov: 68, volume: 0.8, quality: 'high', skyTheme: 'auto', showFps: false, invertY: false, showHands: true };
 
 export function loadSettings() {
   try {
@@ -40,6 +40,9 @@ export class SettingsUI {
         <label>Громкость <span class="v" data-v="volume"></span><input type="range" min="0" max="1" step="0.05" data-k="volume"></label>
         <label>Качество графики
           <select data-k="quality">${Object.entries(QUALITY).map(([k, q]) => `<option value="${k}">${q.label}</option>`).join('')}</select>
+        </label>
+        <label>Небо
+          <select data-k="skyTheme"><option value="auto">По биомам</option><option value="crimson">Кровавая луна</option><option value="green">Сумеречно-зелёное</option></select>
         </label>
         <label class="chk"><input type="checkbox" data-k="invertY"> Инвертировать ось Y</label>
         <label class="chk"><input type="checkbox" data-k="showFps"> Показывать FPS</label>

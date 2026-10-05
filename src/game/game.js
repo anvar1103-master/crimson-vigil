@@ -133,7 +133,7 @@ export class Game {
 
   loadLevel(biomeId, seed, zone = null) {
     if (this.level) this.level.dispose();
-    this.level = buildBiomeLevel(this.scene, biomeId, seed, zone);
+    this.level = buildBiomeLevel(this.scene, biomeId, seed, zone, this.settings.skyTheme || 'auto');
     this.applyAtmosphere(this.level.atmosphere);
     if (this.weather) this.weather.set(this.level.atmosphere);
     this.ambience?.dispose();
@@ -149,7 +149,7 @@ export class Game {
     fogUniforms.fogGround.value = a.mistGround;
 
     if (this.sky) scene.remove(this.sky);
-    this.sky = createSky({ horizon: a.skyHorizon, zenith: a.skyZenith, moonDir: a.moonDir });
+    this.sky = createSky({ horizon: a.skyHorizon, zenith: a.skyZenith, moonDir: a.moonDir, moonColor: a.moonColor, moonSize: a.moonSize, halo: a.halo, halo2: a.halo2, cloudLit: a.cloudLit });
     this.sky.visible = !a.indoor;
     scene.add(this.sky);
 
@@ -193,6 +193,9 @@ export class Game {
     this.audio.volume = s.volume;
     this.hud?.setFps(s.showFps);
     if (qualityChanged) setTimeout(() => location.reload(), 200);
+    // Новая тема неба сразу видна в меню; в забеге — со следующей зоны.
+    if (this._theme && this._theme !== s.skyTheme && this.state === 'menu') this.loadLevel('cathedral', 7);
+    this._theme = s.skyTheme;
   }
 
   // Динамическое разрешение: держим кадр около 60 FPS на неизвестном железе.

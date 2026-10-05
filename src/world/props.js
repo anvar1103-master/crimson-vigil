@@ -15,10 +15,10 @@ export function createMaterials() {
   const wood = TX.woodTex(4, true); wood.repeat.set(1 / 1.5, 1 / 1.5);
   const M = (o) => withFog(new THREE.MeshStandardMaterial(o));
   return {
-    stone: M({ map: stone.map, bumpMap: stone.bump, bumpScale: 3, roughnessMap: stone.bump, roughness: 1, color: 0xc8c2bc }),
+    stone: M({ map: stone.map, bumpMap: stone.bump, bumpScale: 3, roughness: 0.95, color: 0xc8c2bc, envMapIntensity: 0.5 }),
     stoneDark: M({ map: stoneDark.map, bumpMap: stoneDark.bump, bumpScale: 3, roughness: 0.95, color: 0x9a9490 }),
     trim: M({ map: stoneDark.map, bumpMap: stoneDark.bump, bumpScale: 1.5, roughness: 0.85, color: 0xb0a8a2 }),
-    cobble: M({ map: cob.map, bumpMap: cob.bump, bumpScale: 4, roughnessMap: cob.bump, roughness: 0.9, color: 0xb4aca8, envMapIntensity: 1.4 }),
+    cobble: M({ map: cob.map, bumpMap: cob.bump, bumpScale: 4, roughness: 0.92, color: 0xb4aca8, envMapIntensity: 0.45 }),
     ground: M({ map: ground.map, bumpMap: ground.bump, bumpScale: 2, roughness: 0.95, color: 0xa8a0a0 }),
     tomb: M({ map: stoneDark.map, bumpMap: stoneDark.bump, bumpScale: 2.5, roughness: 0.9, color: 0x8c8a8a }),
     iron: M({ color: 0x141316, metalness: 0.85, roughness: 0.5 }),
