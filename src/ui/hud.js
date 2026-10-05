@@ -171,6 +171,19 @@ export class HUD {
     next();
   }
 
+  // Кинематографичное появление босса: полосы сверху и снизу, крупное имя.
+  bossIntro(name, sub) {
+    if (!this.introEl) {
+      this.introEl = h('div', 'bossintro', '<div class="bar top"></div><div class="bar bot"></div><div class="bt"><div class="bn"></div><div class="bs"></div></div>');
+      this.root.append(this.introEl);
+    }
+    this.introEl.querySelector('.bn').textContent = name;
+    this.introEl.querySelector('.bs').textContent = sub || '';
+    this.introEl.classList.remove('show');
+    void this.introEl.offsetWidth;
+    this.introEl.classList.add('show');
+  }
+
   // Счётчик серии убийств справа от прицела; полоска показывает, сколько осталось до сброса.
   combo(n, mul) {
     if (!this.comboEl) {
@@ -283,6 +296,9 @@ export class HUD {
   }
 
   fillStats(run) {
+    let row = this.death.querySelector('.relicrow');
+    if (!row) { row = h('div', 'relicrow'); this.death.querySelector('.stats').after(row); }
+    row.innerHTML = run.relics.map((r) => `<span title="${r.name}">${r.glyph}</span>`).join('');
     const m = Math.floor(run.time / 60), s = Math.floor(run.time % 60).toString().padStart(2, '0');
     this.death.querySelector('.stats').innerHTML =
       `<div><b>${run.kills}</b>упокоено</div><div><b>${run.headshots}</b>в голову</div><div><b>${run.depth + 1}</b>зон</div>` +

@@ -256,3 +256,16 @@ button.small { font-size: 18px; padding: 9px 34px; margin-top: 14px; letter-spac
 .combo .cb i { display: block; height: 100%; background: var(--blood-bright); }
 .combo.pop .cn { animation: cpop .3s ease-out; }
 @keyframes cpop { from { transform: scale(1.6); color: #fff; } }
+.bossintro { position: absolute; inset: 0; pointer-events: none; opacity: 0; }
+.bossintro .bar { position: absolute; left: 0; right: 0; height: 12vh; background: #000; }
+.bossintro .bar.top { top: 0; transform: translateY(-100%); } .bossintro .bar.bot { bottom: 0; transform: translateY(100%); }
+.bossintro .bt { position: absolute; left: 0; right: 0; bottom: 16vh; text-align: center; }
+.bossintro .bn { font-family: var(--font-title); font-size: 84px; color: #f0e2cc; text-shadow: 0 0 40px rgba(220, 20, 30, 1), 0 4px 12px #000; }
+.bossintro .bs { font-family: var(--font-text); font-style: italic; font-size: 24px; color: var(--blood-bright); }
+.bossintro.show { animation: bi 4s ease forwards; }
+.bossintro.show .bar { animation: bibar 4s ease forwards; }
+@keyframes bi { 0% { opacity: 0; } 8% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes bibar { 0% { transform: translateY(var(--o, -100%)); } 12%, 82% { transform: translateY(0); } 100% { transform: translateY(var(--o, -100%)); } }
+.bossintro .bar.bot { --o: 100%; }
+.death .relicrow { display: flex; gap: 6px; margin-bottom: 26px; flex-wrap: wrap; justify-content: center; max-width: 600px; }
+.death .relicrow span { font-family: 'Segoe UI Symbol', serif; font-size: 22px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--gold-dim); background: rgba(14,6,10,.8); text-shadow: 0 0 8px rgba(220,40,50,.8); }

@@ -141,6 +141,8 @@ export class EnemyManager {
         this.bossEnemy.bossName = d.bossName;
         game.hud.showBoss(this.bossEnemy);
         game.audio.bell();
+        game.hud.bossIntro(d.bossName || 'Повелитель ночи', game.zones?.zoneTitle?.(game.run.zone)?.sub || '');
+        game.slowmo = 1.4; game.timeScale = 0.45;
         d.adds = 0;
         return;
       }
