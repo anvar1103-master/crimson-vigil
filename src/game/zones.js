@@ -1,6 +1,6 @@
 // Зона ночи: волны → награда → врата с выбором пути. Плюс события (торговец, алтарь).
 import * as THREE from 'three';
-import { RewardAltar, HealingFont, Portal, Merchant, BloodAltar } from '../world/interactables.js';
+import { RewardAltar, HealingFont, Portal, Merchant, BloodAltar, Coffin } from '../world/interactables.js';
 import { rollRelics, rollWeaponUpgrades, RELICS } from './relics.js';
 import { REWARDS, MODIFIERS, BIOMES } from './run.js';
 import { pick, randInt, rand } from '../core/util.js';
@@ -85,7 +85,34 @@ export class ZoneController {
         elite: zone.kind === 'elite',
         countMul: run.zoneMods.count,
       });
+      // Случайное событие: запечатанный гроб где-то на карте.
+      if (rand() < (game.params?.has('coffin') ? 1 : 0.35)) this.spawnCoffin();
     }
+  }
+
+  spawnCoffin() {
+    const game = this.game, L = game.level;
+    const pts = L.spawnPoints.filter((p) => p.distanceTo(L.playerStart) > 8);
+    const base = pick(pts.length ? pts : L.spawnPoints).clone();
+    // Чуть внутрь арены от точки появления.
+    const pos = base.multiplyScalar(0.78);
+    L.resolveCircle(pos, 1.2, 0.5);
+    const c = new Coffin(game, pos, (it) => {
+      if (rand() < 0.6) {
+        game.coins.burst(it.pos.clone().setY(0.8), 30, 2);
+        game.coins.vial(it.pos.clone().add(new THREE.Vector3(0.8, 0, 0)), 30);
+        game.audio.chestOpen();
+        game.hud.banner('Сокровище усопшего', 'Мёртвым золото ни к чему');
+      } else {
+        const e = game.enemies.spawn('stalker', it.pos.clone().add(new THREE.Vector3(0, 0, 0.1)), { elite: true, hp: 300 });
+        e.facing = Math.atan2(game.player.pos.x - e.pos.x, game.player.pos.z - e.pos.z);
+        game.audio.screech(it.pos);
+        game.hud.banner('Засада!', 'Гроб был не пуст');
+        game.coins.burst(it.pos.clone().setY(0.8), 12, 2);
+      }
+    });
+    this.items.push(c);
+    game.hud.say(pick(['Свежая могила. И печать Ордена на крышке…', 'Запечатанный гроб. Кто-то очень не хотел, чтобы его открыли.', 'Гроб. Либо золото, либо неприятности.']));
   }
 
   // Вызывается директором, когда все волны зоны зачищены.

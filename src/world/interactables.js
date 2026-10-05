@@ -316,6 +316,51 @@ export class Merchant extends Interactable {
   interact() { this.onUse?.(this); }
 }
 
+// Запечатанный гроб: золото или засада. Крышка со скрипом съезжает в сторону.
+export class Coffin extends Interactable {
+  constructor(game, pos, onOpen) {
+    super(game, pos, { radius: 2, prompt: 'E — сорвать печать с гроба' });
+    this.onOpen = onOpen;
+    const wood = withFog(new THREE.MeshStandardMaterial({ color: 0x3a2418, roughness: 0.85 }));
+    const iron = withFog(new THREE.MeshStandardMaterial({ color: 0x1a1a1e, metalness: 0.8, roughness: 0.5 }));
+    const seal = new THREE.MeshBasicMaterial({ color: new THREE.Color(2.5, 0.15, 0.2) });
+    // Шестигранный силуэт гроба.
+    const s = new THREE.Shape();
+    s.moveTo(-0.3, -1); s.lineTo(0.3, -1); s.lineTo(0.42, 0.45); s.lineTo(0.3, 1); s.lineTo(-0.3, 1); s.lineTo(-0.42, 0.45); s.closePath();
+    const body = new THREE.Mesh(new THREE.ExtrudeGeometry(s, { depth: 0.45, bevelEnabled: false }).rotateX(-Math.PI / 2), wood);
+    body.position.y = 0;
+    const lidG = new THREE.ExtrudeGeometry(s, { depth: 0.08, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02, bevelSegments: 1 }).rotateX(-Math.PI / 2);
+    this.lid = new THREE.Mesh(lidG, wood);
+    this.lid.position.y = 0.46;
+    for (const z of [-0.6, 0.3]) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.04, 0.06), iron); b.position.set(0, 0.56, z); this.lid.add(b); b.position.y = 0.1; }
+    const cross = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.02, 0.6), seal);
+    cross.position.set(0, 0.11, 0.1); this.lid.add(cross);
+    const cross2 = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.02, 0.08), seal);
+    cross2.position.set(0, 0.11, 0.25); this.lid.add(cross2);
+    for (const m of [body, this.lid]) { m.castShadow = m.receiveShadow = true; this.group.add(m); }
+    this.group.rotation.y = rand() * Math.PI;
+    this.addLight(0xff2030, 3, 5, 0.6);
+    this.opened = 0;
+  }
+  update(dt) {
+    super.update(dt);
+    if (this.active) this.light.intensity = 2 + Math.sin(this.t * 3) * 1;
+    if (this.opened > 0 && this.opened < 1) {
+      this.opened = Math.min(1, this.opened + dt * 1.5);
+      this.lid.position.x = this.opened * 0.7;
+      this.lid.rotation.z = -this.opened * 0.5;
+    }
+  }
+  interact() {
+    if (!this.active) return;
+    this.active = false;
+    this.opened = 0.01;
+    this.light.intensity = 0;
+    this.game.audio.burst({ type: 'bandpass', freq: 300, freq1: 150, q: 3, gain: 0.6, attack: 0.3, decay: 0.6, pos: this.pos, reverb: 0.6 });
+    this.onOpen?.(this);
+  }
+}
+
 // Проклятый алтарь: чаша крови.
 export class BloodAltar extends RewardAltar {
   constructor(game, pos, onUse) {

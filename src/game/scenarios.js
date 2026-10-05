@@ -36,6 +36,17 @@ export const SCENARIOS = {
     setup(g) { for (let i = 0; i < 6; i++) { const e = g.enemies.spawn('thrall', ahead(g, 7, (i - 2.5) * 1.1)); e.speed = 0; e.attackCd = 1e9; e.hp = 1; } },
     input(g, i) { if (i >= 80 && i < 92 && i % 2 === 0) { const e = g.enemies.list.find((x) => x.alive); if (e) { e.takeDamage(99, {}); g.onEnemyKilled(e, { headshot: true }); } } return {}; },
   },
+  // Гроб крупным планом.
+  coffin: {
+    steps: 40,
+    setup(g) {
+      g.zones.spawnCoffin();
+      const c = g.zones.items[g.zones.items.length - 1];
+      const p = c.pos.clone().add(new V3(2.2, 0, 2.2));
+      g.player.teleport(p, Math.atan2(-(c.pos.x - p.x), -(c.pos.z - p.z)));
+      g.player.pitch = -0.35;
+    },
+  },
   // Фляга святой воды по группе отродий.
   flask: {
     steps: 110,
