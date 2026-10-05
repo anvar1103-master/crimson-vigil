@@ -26,6 +26,10 @@ export const RELICS = [
   { id: 'purse', name: 'Кошелёк гробовщика', glyph: '⚱', rarity: 'common', desc: '+50% золота.', apply: (g) => { g.run.stats.goldMul += 0.5; } },
   { id: 'coin', name: 'Проклятая монета', glyph: '☠', rarity: 'cursed', desc: '+35% урона, но вы получаете на 25% больше урона.', apply: (g) => { g.run.stats.damage += 0.35; g.run.stats.damageTaken *= 1.25; } },
   { id: 'thorn', name: 'Шип Серебряного Терна', glyph: '✤', rarity: 'rare', desc: 'После рывка следующий выстрел наносит тройной урон.', apply: (g) => { g.run.stats.dashEmpower = 3; } },
+  { id: 'flask', name: 'Освящённая фляга', glyph: '⚗', rarity: 'common', desc: '+1 фляга святой воды в каждой зоне.', apply: (g) => { g.run.stats.extraFlasks = (g.run.stats.extraFlasks || 0) + 1; g.flasks.charges++; } },
+  { id: 'martyr', name: 'Мощи мученика', glyph: '♰', rarity: 'rare', desc: 'Святой огонь горит на 60% дольше и жжёт на 40% сильнее, лужа шире.', apply: (g) => { const s = g.run.stats; s.flaskDuration = (s.flaskDuration || 1) * 1.6; s.flaskPower = (s.flaskPower || 1) * 1.4; s.flaskRadius = (s.flaskRadius || 1) * 1.2; } },
+  { id: 'wrath', name: 'Гнев небесный', glyph: '☄', rarity: 'rare', desc: 'Фляга взрывается при ударе: 60 урона по всем вокруг.', apply: (g) => { g.run.stats.flaskBurst = true; } },
+  { id: 'scythe', name: 'Серп жнеца', glyph: '☽', rarity: 'common', desc: 'Окно серии убийств +2 с; каждая веха серии лечит 15.', apply: (g) => { g.run.stats.comboTime = (g.run.stats.comboTime || 0) + 2; g.run.stats.comboHeal = (g.run.stats.comboHeal || 0) + 15; } },
   { id: 'hunger', name: 'Голод охотника', glyph: '☾', rarity: 'cursed', desc: 'Скорость и скорострельность +20%, но убийства не лечат волной.', apply: (g) => { g.run.stats.moveSpeed += 0.2; g.player.speedMul = g.run.stats.moveSpeed; g.run.stats.fireRate += 0.2; g.run.stats.noWaveHeal = true; } },
 ];
 

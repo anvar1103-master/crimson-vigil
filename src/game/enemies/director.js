@@ -5,6 +5,7 @@ import { Thrall } from './thrall.js';
 import { Bat, Broodmother } from './bat.js';
 import { Witch } from './witch.js';
 import { Brute } from './brute.js';
+import { Wolf } from './wolf.js';
 import { rand } from '../../core/util.js';
 
 const V3 = THREE.Vector3;
@@ -15,6 +16,7 @@ export const ENEMY_TYPES = {
   bat: (game, pos, o) => new Bat(game, pos, o),
   witch: (game, pos, o) => new Witch(game, pos, o),
   brute: (game, pos, o) => new Brute(game, pos, o),
+  wolf: (game, pos, o) => new Wolf(game, pos, o),
 };
 
 // Боссы биомов.
@@ -27,8 +29,8 @@ const BOSSES = {
 
 // Состав тварей по биомам: [тип, стоимость, вес, минимальный уровень угрозы].
 const ROSTER = {
-  village: [['thrall', 1, 6, 0], ['stalker', 2.5, 2, 0], ['bat', 0.7, 0.8, 0.5], ['brute', 6, 1, 1.5]],
-  forest: [['bat', 0.7, 2.5, 0], ['stalker', 2.5, 2, 0], ['witch', 3, 1.6, 0], ['thrall', 1, 1.5, 0], ['brute', 6, 0.5, 3]],
+  village: [['thrall', 1, 6, 0], ['stalker', 2.5, 2, 0], ['bat', 0.7, 0.8, 0.5], ['wolf', 1.4, 0.8, 1], ['brute', 6, 1, 1.5]],
+  forest: [['wolf', 1.4, 2.5, 0], ['bat', 0.7, 2, 0], ['stalker', 2.5, 2, 0], ['witch', 3, 1.6, 0], ['thrall', 1, 1.5, 0], ['brute', 6, 0.5, 3]],
   cathedral: [['stalker', 2.5, 3, 0], ['witch', 3, 1.6, 0], ['thrall', 1, 2, 0], ['bat', 0.7, 1, 0], ['brute', 6, 0.7, 3]],
   castle: [['stalker', 2.5, 3, 0], ['witch', 3, 2, 0], ['brute', 6, 1.2, 0], ['bat', 0.7, 1, 0], ['thrall', 1, 1, 0]],
 };
@@ -177,7 +179,7 @@ export class EnemyManager {
       d.spawnTimer -= dt;
       if (d.spawnTimer <= 0 && this.alive < d.maxAlive) {
         const s = d.queue.shift();
-        const base = { stalker: 110, thrall: 55, bat: 16, witch: 85, brute: 380 }[s.type] ?? 100;
+        const base = { stalker: 110, thrall: 55, bat: 16, witch: 85, brute: 380, wolf: 45 }[s.type] ?? 100;
         const at = this.pickSpawn();
         this.spawn(s.type, at, {
           hp: base * (s.elite && s.type === 'stalker' ? 2.5 : 1) * stats.hp,

@@ -311,7 +311,7 @@ export const SCENARIOS = {
         if (boss === 'broodmother') g.player.pitch = 0.42;
         return;
       }
-      const types = ['thrall', 'stalker', 'witch', 'brute', 'bat'];
+      const types = ['thrall', 'stalker', 'witch', 'brute', 'bat', 'wolf'];
       types.forEach((t, i) => g.enemies.spawn(t, ahead(g, 6 + (t === 'brute' ? 2 : 0), (i - 2) * 1.9)));
       for (const e of g.enemies.list) { e.speed = 0; e.lungeCd = 1e9; e.attackCd = 1e9; e.chargeCd = 1e9; e.castCd = 1e9; e.diveCd = 1e9; }
     },
