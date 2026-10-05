@@ -339,5 +339,6 @@ export const SCENARIOS = {
   },
 
   menu: { steps: 30, menu: true },
+  codex: { steps: 10, menu: true, setup(g) { g.meta.codex = { thrall: 41, stalker: 17, wolf: 9, butcher: 1 }; g.openCodex(); } },
   death: { steps: 120, setup(g) { g.player.damage(500, ahead(g, 2)); } },
 };

@@ -32,6 +32,7 @@ import { SCENARIOS } from './scenarios.js';
 import { loadMeta, saveMeta, META_UPGRADES } from './meta.js';
 import { loadSettings, SettingsUI, QUALITY } from '../ui/settings.js';
 import { rollRelics } from './relics.js';
+import { CODEX, recordKill } from './codex.js';
 
 function countLights(scene) {
   let n = 0;
@@ -121,6 +122,7 @@ export class Game {
     this.settingsUI = new SettingsUI(uiRoot, this);
     this.hud.startBtn.addEventListener('click', () => this.startRun());
     this.hud.orderBtn.addEventListener('click', () => this.openOrder());
+    this.hud.codexBtn?.addEventListener('click', () => this.openCodex());
     this.hud.settingsBtn.addEventListener('click', () => { this.hud.menu.classList.add('hidden'); this.settingsUI.open(() => this.hud.menu.classList.remove('hidden')); });
     this.hud.pause.querySelector('.resume').addEventListener('click', () => this.input.lock());
     this.hud.pause.querySelector('.opts').addEventListener('click', () => this.settingsUI.open());
@@ -367,6 +369,17 @@ export class Game {
   }
 
   // Святилище Ордена: трата кровавых осколков на постоянные улучшения.
+  // Бестиарий: карточки тварей, открытые после первого убийства.
+  async openCodex() {
+    this.hud.menu.classList.add('hidden');
+    const seen = this.meta.codex || {};
+    const opts = CODEX.map((e) => seen[e.id]
+      ? { id: e.id, name: e.name, glyph: e.glyph, desc: e.text, rarity: e.boss ? 'cursed' : 'rare', rarityLabel: `Упокоено: ${seen[e.id]}` }
+      : { id: e.id, name: '???', glyph: '?', desc: 'Запись откроется после первой встречи с этой тварью.', rarity: 'common', rarityLabel: e.boss ? 'Повелитель' : 'Неизвестно', disabled: true });
+    await this.choiceUI.show({ title: 'Бестиарий Ордена', subtitle: `Изучено ${CODEX.filter((e) => seen[e.id]).length} из ${CODEX.length}`, options: opts, closable: true, wide: true, closeLabel: 'Закрыть' });
+    this.hud.menu.classList.remove('hidden');
+  }
+
   async openOrder() {
     this.hud.menu.classList.add('hidden');
     for (;;) {
@@ -428,6 +441,7 @@ export class Game {
   onEnemyKilled(enemy, { headshot }) {
     const run = this.run, stats = run.stats;
     run.kills++;
+    if (recordKill(this.meta, enemy)) { this.hud.banner('Новая запись в бестиарии', CODEX.find((e) => e.id === (enemy.boss || enemy.type))?.name || ''); saveMeta(this.meta); }
     if (headshot) run.headshots++;
     const c = enemy.center();
     const coins = enemy.boss ? 30 : enemy.elite ? 8 : 2 + Math.floor(rand() * 3);

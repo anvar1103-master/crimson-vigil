@@ -91,6 +91,7 @@ export class HUD {
       <div class="lore">Сорок ночей Багровая Луна не заходит над провинцией Варн.<br>Последний охотник Ордена идёт туда, откуда не возвращаются.</div>
       <button class="start">Начать охоту</button>
       <button class="order small">Святилище Ордена</button>
+      <button class="codexbtn small">Бестиарий</button>
       <button class="opts small">Настройки</button>
       <div class="controls">
         <span><b>WASD</b> движение</span><span><b>Мышь</b> прицел</span><span><b>ЛКМ</b> огонь</span><span><b>ПКМ</b> прицеливание</span>
@@ -138,6 +139,7 @@ export class HUD {
     this.startBtn = this.menu.querySelector('.start');
     this.orderBtn = this.menu.querySelector('.order');
     this.settingsBtn = this.menu.querySelector('.opts');
+    this.codexBtn = this.menu.querySelector('.codexbtn');
 
     this.pause = h('div', 'screen pause hidden', `<h2>Пауза</h2><div class="hint">Ночь подождёт. Недолго.</div>
       <div class="btns"><button class="resume">Вернуться в ночь</button><button class="opts small">Настройки</button><button class="quit small">Покинуть забег</button></div>`);
